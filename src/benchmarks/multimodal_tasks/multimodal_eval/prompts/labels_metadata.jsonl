@@ -1,0 +1,994 @@
+{"tag": "single_object", "include": [{"class": "tench", "count": 1}], "prompt": "a photo of a tench"}
+{"tag": "single_object", "include": [{"class": "goldfish", "count": 1}], "prompt": "a photo of a goldfish"}
+{"tag": "single_object", "include": [{"class": "man-eating shark", "count": 1}], "prompt": "a photo of a man-eating shark"}
+{"tag": "single_object", "include": [{"class": "tiger shark", "count": 1}], "prompt": "a photo of a tiger shark"}
+{"tag": "single_object", "include": [{"class": "hammerhead", "count": 1}], "prompt": "a photo of a hammerhead"}
+{"tag": "single_object", "include": [{"class": "crampfish", "count": 1}], "prompt": "a photo of a crampfish"}
+{"tag": "single_object", "include": [{"class": "stingray", "count": 1}], "prompt": "a photo of a stingray"}
+{"tag": "single_object", "include": [{"class": "cock", "count": 1}], "prompt": "a photo of a cock"}
+{"tag": "single_object", "include": [{"class": "hen", "count": 1}], "prompt": "a photo of a hen"}
+{"tag": "single_object", "include": [{"class": "ostrich", "count": 1}], "prompt": "a photo of a ostrich"}
+{"tag": "single_object", "include": [{"class": "brambling", "count": 1}], "prompt": "a photo of a brambling"}
+{"tag": "single_object", "include": [{"class": "goldfinch", "count": 1}], "prompt": "a photo of a goldfinch"}
+{"tag": "single_object", "include": [{"class": "house finch", "count": 1}], "prompt": "a photo of a house finch"}
+{"tag": "single_object", "include": [{"class": "junco", "count": 1}], "prompt": "a photo of a junco"}
+{"tag": "single_object", "include": [{"class": "indigo bunting", "count": 1}], "prompt": "a photo of a indigo bunting"}
+{"tag": "single_object", "include": [{"class": "robin", "count": 1}], "prompt": "a photo of a robin"}
+{"tag": "single_object", "include": [{"class": "bulbul", "count": 1}], "prompt": "a photo of a bulbul"}
+{"tag": "single_object", "include": [{"class": "jay", "count": 1}], "prompt": "a photo of a jay"}
+{"tag": "single_object", "include": [{"class": "magpie", "count": 1}], "prompt": "a photo of a magpie"}
+{"tag": "single_object", "include": [{"class": "chickadee", "count": 1}], "prompt": "a photo of a chickadee"}
+{"tag": "single_object", "include": [{"class": "dipper", "count": 1}], "prompt": "a photo of a dipper"}
+{"tag": "single_object", "include": [{"class": "kite", "count": 1}], "prompt": "a photo of a kite"}
+{"tag": "single_object", "include": [{"class": "bald eagle", "count": 1}], "prompt": "a photo of a bald eagle"}
+{"tag": "single_object", "include": [{"class": "vulture", "count": 1}], "prompt": "a photo of a vulture"}
+{"tag": "single_object", "include": [{"class": "great gray owl", "count": 1}], "prompt": "a photo of a great gray owl"}
+{"tag": "single_object", "include": [{"class": "Salamandra salamandra", "count": 1}], "prompt": "a photo of a Salamandra salamandra"}
+{"tag": "single_object", "include": [{"class": "common newt", "count": 1}], "prompt": "a photo of a common newt"}
+{"tag": "single_object", "include": [{"class": "eft", "count": 1}], "prompt": "a photo of a eft"}
+{"tag": "single_object", "include": [{"class": "spotted salamander", "count": 1}], "prompt": "a photo of a spotted salamander"}
+{"tag": "single_object", "include": [{"class": "axolotl", "count": 1}], "prompt": "a photo of a axolotl"}
+{"tag": "single_object", "include": [{"class": "bullfrog", "count": 1}], "prompt": "a photo of a bullfrog"}
+{"tag": "single_object", "include": [{"class": "tree-frog", "count": 1}], "prompt": "a photo of a tree-frog"}
+{"tag": "single_object", "include": [{"class": "tailed frog", "count": 1}], "prompt": "a photo of a tailed frog"}
+{"tag": "single_object", "include": [{"class": "loggerhead turtle", "count": 1}], "prompt": "a photo of a loggerhead turtle"}
+{"tag": "single_object", "include": [{"class": "leatherback", "count": 1}], "prompt": "a photo of a leatherback"}
+{"tag": "single_object", "include": [{"class": "mud turtle", "count": 1}], "prompt": "a photo of a mud turtle"}
+{"tag": "single_object", "include": [{"class": "terrapin", "count": 1}], "prompt": "a photo of a terrapin"}
+{"tag": "single_object", "include": [{"class": "box tortoise", "count": 1}], "prompt": "a photo of a box tortoise"}
+{"tag": "single_object", "include": [{"class": "banded gecko", "count": 1}], "prompt": "a photo of a banded gecko"}
+{"tag": "single_object", "include": [{"class": "iguana", "count": 1}], "prompt": "a photo of a iguana"}
+{"tag": "single_object", "include": [{"class": "anole", "count": 1}], "prompt": "a photo of a anole"}
+{"tag": "single_object", "include": [{"class": "whiptail lizard", "count": 1}], "prompt": "a photo of a whiptail lizard"}
+{"tag": "single_object", "include": [{"class": "agama", "count": 1}], "prompt": "a photo of a agama"}
+{"tag": "single_object", "include": [{"class": "frilled lizard", "count": 1}], "prompt": "a photo of a frilled lizard"}
+{"tag": "single_object", "include": [{"class": "alligator lizard", "count": 1}], "prompt": "a photo of a alligator lizard"}
+{"tag": "single_object", "include": [{"class": "Gila monster", "count": 1}], "prompt": "a photo of a Gila monster"}
+{"tag": "single_object", "include": [{"class": "green lizard", "count": 1}], "prompt": "a photo of a green lizard"}
+{"tag": "single_object", "include": [{"class": "Chamaeleo chamaeleon", "count": 1}], "prompt": "a photo of a Chamaeleo chamaeleon"}
+{"tag": "single_object", "include": [{"class": "dragon lizard", "count": 1}], "prompt": "a photo of a dragon lizard"}
+{"tag": "single_object", "include": [{"class": "African crocodile", "count": 1}], "prompt": "a photo of a African crocodile"}
+{"tag": "single_object", "include": [{"class": "American alligator", "count": 1}], "prompt": "a photo of a American alligator"}
+{"tag": "single_object", "include": [{"class": "triceratops", "count": 1}], "prompt": "a photo of a triceratops"}
+{"tag": "single_object", "include": [{"class": "worm snake", "count": 1}], "prompt": "a photo of a worm snake"}
+{"tag": "single_object", "include": [{"class": "ring-necked snake", "count": 1}], "prompt": "a photo of a ring-necked snake"}
+{"tag": "single_object", "include": [{"class": "sand viper", "count": 1}], "prompt": "a photo of a sand viper"}
+{"tag": "single_object", "include": [{"class": "grass snake", "count": 1}], "prompt": "a photo of a grass snake"}
+{"tag": "single_object", "include": [{"class": "king snake", "count": 1}], "prompt": "a photo of a king snake"}
+{"tag": "single_object", "include": [{"class": "grass snake", "count": 1}], "prompt": "a photo of a grass snake"}
+{"tag": "single_object", "include": [{"class": "water snake", "count": 1}], "prompt": "a photo of a water snake"}
+{"tag": "single_object", "include": [{"class": "vine snake", "count": 1}], "prompt": "a photo of a vine snake"}
+{"tag": "single_object", "include": [{"class": "night snake", "count": 1}], "prompt": "a photo of a night snake"}
+{"tag": "single_object", "include": [{"class": "boa constrictor", "count": 1}], "prompt": "a photo of a boa constrictor"}
+{"tag": "single_object", "include": [{"class": "rock python", "count": 1}], "prompt": "a photo of a rock python"}
+{"tag": "single_object", "include": [{"class": "Indian cobra", "count": 1}], "prompt": "a photo of a Indian cobra"}
+{"tag": "single_object", "include": [{"class": "green mamba", "count": 1}], "prompt": "a photo of a green mamba"}
+{"tag": "single_object", "include": [{"class": "sea snake", "count": 1}], "prompt": "a photo of a sea snake"}
+{"tag": "single_object", "include": [{"class": "horned asp", "count": 1}], "prompt": "a photo of a horned asp"}
+{"tag": "single_object", "include": [{"class": "diamondback rattlesnake", "count": 1}], "prompt": "a photo of a diamondback rattlesnake"}
+{"tag": "single_object", "include": [{"class": "sidewinder", "count": 1}], "prompt": "a photo of a sidewinder"}
+{"tag": "single_object", "include": [{"class": "trilobite", "count": 1}], "prompt": "a photo of a trilobite"}
+{"tag": "single_object", "include": [{"class": "harvestman", "count": 1}], "prompt": "a photo of a harvestman"}
+{"tag": "single_object", "include": [{"class": "scorpion", "count": 1}], "prompt": "a photo of a scorpion"}
+{"tag": "single_object", "include": [{"class": "black and gold garden spider", "count": 1}], "prompt": "a photo of a black and gold garden spider"}
+{"tag": "single_object", "include": [{"class": "barn spider", "count": 1}], "prompt": "a photo of a barn spider"}
+{"tag": "single_object", "include": [{"class": "garden spider", "count": 1}], "prompt": "a photo of a garden spider"}
+{"tag": "single_object", "include": [{"class": "black widow", "count": 1}], "prompt": "a photo of a black widow"}
+{"tag": "single_object", "include": [{"class": "tarantula", "count": 1}], "prompt": "a photo of a tarantula"}
+{"tag": "single_object", "include": [{"class": "wolf spider", "count": 1}], "prompt": "a photo of a wolf spider"}
+{"tag": "single_object", "include": [{"class": "tick", "count": 1}], "prompt": "a photo of a tick"}
+{"tag": "single_object", "include": [{"class": "centipede", "count": 1}], "prompt": "a photo of a centipede"}
+{"tag": "single_object", "include": [{"class": "black grouse", "count": 1}], "prompt": "a photo of a black grouse"}
+{"tag": "single_object", "include": [{"class": "ptarmigan", "count": 1}], "prompt": "a photo of a ptarmigan"}
+{"tag": "single_object", "include": [{"class": "partridge", "count": 1}], "prompt": "a photo of a partridge"}
+{"tag": "single_object", "include": [{"class": "prairie chicken", "count": 1}], "prompt": "a photo of a prairie chicken"}
+{"tag": "single_object", "include": [{"class": "peacock", "count": 1}], "prompt": "a photo of a peacock"}
+{"tag": "single_object", "include": [{"class": "quail", "count": 1}], "prompt": "a photo of a quail"}
+{"tag": "single_object", "include": [{"class": "partridge", "count": 1}], "prompt": "a photo of a partridge"}
+{"tag": "single_object", "include": [{"class": "Psittacus erithacus", "count": 1}], "prompt": "a photo of a Psittacus erithacus"}
+{"tag": "single_object", "include": [{"class": "macaw", "count": 1}], "prompt": "a photo of a macaw"}
+{"tag": "single_object", "include": [{"class": "sulphur-crested cockatoo", "count": 1}], "prompt": "a photo of a sulphur-crested cockatoo"}
+{"tag": "single_object", "include": [{"class": "lorikeet", "count": 1}], "prompt": "a photo of a lorikeet"}
+{"tag": "single_object", "include": [{"class": "coucal", "count": 1}], "prompt": "a photo of a coucal"}
+{"tag": "single_object", "include": [{"class": "bee eater", "count": 1}], "prompt": "a photo of a bee eater"}
+{"tag": "single_object", "include": [{"class": "hornbill", "count": 1}], "prompt": "a photo of a hornbill"}
+{"tag": "single_object", "include": [{"class": "hummingbird", "count": 1}], "prompt": "a photo of a hummingbird"}
+{"tag": "single_object", "include": [{"class": "jacamar", "count": 1}], "prompt": "a photo of a jacamar"}
+{"tag": "single_object", "include": [{"class": "toucan", "count": 1}], "prompt": "a photo of a toucan"}
+{"tag": "single_object", "include": [{"class": "drake", "count": 1}], "prompt": "a photo of a drake"}
+{"tag": "single_object", "include": [{"class": "red-breasted merganser", "count": 1}], "prompt": "a photo of a red-breasted merganser"}
+{"tag": "single_object", "include": [{"class": "goose", "count": 1}], "prompt": "a photo of a goose"}
+{"tag": "single_object", "include": [{"class": "black swan", "count": 1}], "prompt": "a photo of a black swan"}
+{"tag": "single_object", "include": [{"class": "tusker", "count": 1}], "prompt": "a photo of a tusker"}
+{"tag": "single_object", "include": [{"class": "spiny anteater", "count": 1}], "prompt": "a photo of a spiny anteater"}
+{"tag": "single_object", "include": [{"class": "duck-billed platypus", "count": 1}], "prompt": "a photo of a duck-billed platypus"}
+{"tag": "single_object", "include": [{"class": "brush kangaroo", "count": 1}], "prompt": "a photo of a brush kangaroo"}
+{"tag": "single_object", "include": [{"class": "kangaroo bear", "count": 1}], "prompt": "a photo of a kangaroo bear"}
+{"tag": "single_object", "include": [{"class": "wombat", "count": 1}], "prompt": "a photo of a wombat"}
+{"tag": "single_object", "include": [{"class": "jellyfish", "count": 1}], "prompt": "a photo of a jellyfish"}
+{"tag": "single_object", "include": [{"class": "anemone", "count": 1}], "prompt": "a photo of a anemone"}
+{"tag": "single_object", "include": [{"class": "brain coral", "count": 1}], "prompt": "a photo of a brain coral"}
+{"tag": "single_object", "include": [{"class": "flatworm", "count": 1}], "prompt": "a photo of a flatworm"}
+{"tag": "single_object", "include": [{"class": "nematode worm", "count": 1}], "prompt": "a photo of a nematode worm"}
+{"tag": "single_object", "include": [{"class": "conch", "count": 1}], "prompt": "a photo of a conch"}
+{"tag": "single_object", "include": [{"class": "snail", "count": 1}], "prompt": "a photo of a snail"}
+{"tag": "single_object", "include": [{"class": "slug", "count": 1}], "prompt": "a photo of a slug"}
+{"tag": "single_object", "include": [{"class": "sea slug", "count": 1}], "prompt": "a photo of a sea slug"}
+{"tag": "single_object", "include": [{"class": "sea cradle", "count": 1}], "prompt": "a photo of a sea cradle"}
+{"tag": "single_object", "include": [{"class": "nautilus", "count": 1}], "prompt": "a photo of a nautilus"}
+{"tag": "single_object", "include": [{"class": "Dungeness crab", "count": 1}], "prompt": "a photo of a Dungeness crab"}
+{"tag": "single_object", "include": [{"class": "rock crab", "count": 1}], "prompt": "a photo of a rock crab"}
+{"tag": "single_object", "include": [{"class": "fiddler crab", "count": 1}], "prompt": "a photo of a fiddler crab"}
+{"tag": "single_object", "include": [{"class": "king crab", "count": 1}], "prompt": "a photo of a king crab"}
+{"tag": "single_object", "include": [{"class": "American lobster", "count": 1}], "prompt": "a photo of a American lobster"}
+{"tag": "single_object", "include": [{"class": "rock lobster", "count": 1}], "prompt": "a photo of a rock lobster"}
+{"tag": "single_object", "include": [{"class": "crawfish", "count": 1}], "prompt": "a photo of a crawfish"}
+{"tag": "single_object", "include": [{"class": "hermit crab", "count": 1}], "prompt": "a photo of a hermit crab"}
+{"tag": "single_object", "include": [{"class": "isopod", "count": 1}], "prompt": "a photo of a isopod"}
+{"tag": "single_object", "include": [{"class": "white stork", "count": 1}], "prompt": "a photo of a white stork"}
+{"tag": "single_object", "include": [{"class": "black stork", "count": 1}], "prompt": "a photo of a black stork"}
+{"tag": "single_object", "include": [{"class": "spoonbill", "count": 1}], "prompt": "a photo of a spoonbill"}
+{"tag": "single_object", "include": [{"class": "flamingo", "count": 1}], "prompt": "a photo of a flamingo"}
+{"tag": "single_object", "include": [{"class": "Egretta caerulea", "count": 1}], "prompt": "a photo of a Egretta caerulea"}
+{"tag": "single_object", "include": [{"class": "American egret", "count": 1}], "prompt": "a photo of a American egret"}
+{"tag": "single_object", "include": [{"class": "bittern", "count": 1}], "prompt": "a photo of a bittern"}
+{"tag": "single_object", "include": [{"class": "crane", "count": 1}], "prompt": "a photo of a crane"}
+{"tag": "single_object", "include": [{"class": "limpkin", "count": 1}], "prompt": "a photo of a limpkin"}
+{"tag": "single_object", "include": [{"class": "European gallinule", "count": 1}], "prompt": "a photo of a European gallinule"}
+{"tag": "single_object", "include": [{"class": "water hen", "count": 1}], "prompt": "a photo of a water hen"}
+{"tag": "single_object", "include": [{"class": "bustard", "count": 1}], "prompt": "a photo of a bustard"}
+{"tag": "single_object", "include": [{"class": "ruddy turnstone", "count": 1}], "prompt": "a photo of a ruddy turnstone"}
+{"tag": "single_object", "include": [{"class": "red-backed sandpiper", "count": 1}], "prompt": "a photo of a red-backed sandpiper"}
+{"tag": "single_object", "include": [{"class": "redshank", "count": 1}], "prompt": "a photo of a redshank"}
+{"tag": "single_object", "include": [{"class": "dowitcher", "count": 1}], "prompt": "a photo of a dowitcher"}
+{"tag": "single_object", "include": [{"class": "oystercatcher", "count": 1}], "prompt": "a photo of a oystercatcher"}
+{"tag": "single_object", "include": [{"class": "pelican", "count": 1}], "prompt": "a photo of a pelican"}
+{"tag": "single_object", "include": [{"class": "king penguin", "count": 1}], "prompt": "a photo of a king penguin"}
+{"tag": "single_object", "include": [{"class": "albatross", "count": 1}], "prompt": "a photo of a albatross"}
+{"tag": "single_object", "include": [{"class": "devilfish", "count": 1}], "prompt": "a photo of a devilfish"}
+{"tag": "single_object", "include": [{"class": "killer", "count": 1}], "prompt": "a photo of a killer"}
+{"tag": "single_object", "include": [{"class": "dugong", "count": 1}], "prompt": "a photo of a dugong"}
+{"tag": "single_object", "include": [{"class": "sea lion", "count": 1}], "prompt": "a photo of a sea lion"}
+{"tag": "single_object", "include": [{"class": "Chihuahua", "count": 1}], "prompt": "a photo of a Chihuahua"}
+{"tag": "single_object", "include": [{"class": "Japanese spaniel", "count": 1}], "prompt": "a photo of a Japanese spaniel"}
+{"tag": "single_object", "include": [{"class": "Maltese", "count": 1}], "prompt": "a photo of a Maltese"}
+{"tag": "single_object", "include": [{"class": "Pekingese", "count": 1}], "prompt": "a photo of a Pekingese"}
+{"tag": "single_object", "include": [{"class": "Shih-Tzu", "count": 1}], "prompt": "a photo of a Shih-Tzu"}
+{"tag": "single_object", "include": [{"class": "Blenheim spaniel", "count": 1}], "prompt": "a photo of a Blenheim spaniel"}
+{"tag": "single_object", "include": [{"class": "papillon", "count": 1}], "prompt": "a photo of a papillon"}
+{"tag": "single_object", "include": [{"class": "toy terrier", "count": 1}], "prompt": "a photo of a toy terrier"}
+{"tag": "single_object", "include": [{"class": "Rhodesian ridgeback", "count": 1}], "prompt": "a photo of a Rhodesian ridgeback"}
+{"tag": "single_object", "include": [{"class": "Afghan hound", "count": 1}], "prompt": "a photo of a Afghan hound"}
+{"tag": "single_object", "include": [{"class": "basset", "count": 1}], "prompt": "a photo of a basset"}
+{"tag": "single_object", "include": [{"class": "beagle", "count": 1}], "prompt": "a photo of a beagle"}
+{"tag": "single_object", "include": [{"class": "bloodhound", "count": 1}], "prompt": "a photo of a bloodhound"}
+{"tag": "single_object", "include": [{"class": "bluetick", "count": 1}], "prompt": "a photo of a bluetick"}
+{"tag": "single_object", "include": [{"class": "black-and-tan coonhound", "count": 1}], "prompt": "a photo of a black-and-tan coonhound"}
+{"tag": "single_object", "include": [{"class": "Walker hound", "count": 1}], "prompt": "a photo of a Walker hound"}
+{"tag": "single_object", "include": [{"class": "English foxhound", "count": 1}], "prompt": "a photo of a English foxhound"}
+{"tag": "single_object", "include": [{"class": "redbone", "count": 1}], "prompt": "a photo of a redbone"}
+{"tag": "single_object", "include": [{"class": "borzoi", "count": 1}], "prompt": "a photo of a borzoi"}
+{"tag": "single_object", "include": [{"class": "Irish wolfhound", "count": 1}], "prompt": "a photo of a Irish wolfhound"}
+{"tag": "single_object", "include": [{"class": "Italian greyhound", "count": 1}], "prompt": "a photo of a Italian greyhound"}
+{"tag": "single_object", "include": [{"class": "whippet", "count": 1}], "prompt": "a photo of a whippet"}
+{"tag": "single_object", "include": [{"class": "Ibizan Podenco", "count": 1}], "prompt": "a photo of a Ibizan Podenco"}
+{"tag": "single_object", "include": [{"class": "elkhound", "count": 1}], "prompt": "a photo of a elkhound"}
+{"tag": "single_object", "include": [{"class": "otterhound", "count": 1}], "prompt": "a photo of a otterhound"}
+{"tag": "single_object", "include": [{"class": "gazelle hound", "count": 1}], "prompt": "a photo of a gazelle hound"}
+{"tag": "single_object", "include": [{"class": "deerhound", "count": 1}], "prompt": "a photo of a deerhound"}
+{"tag": "single_object", "include": [{"class": "Weimaraner", "count": 1}], "prompt": "a photo of a Weimaraner"}
+{"tag": "single_object", "include": [{"class": "Staffordshire bull terrier", "count": 1}], "prompt": "a photo of a Staffordshire bull terrier"}
+{"tag": "single_object", "include": [{"class": "American Staffordshire terrier", "count": 1}], "prompt": "a photo of a American Staffordshire terrier"}
+{"tag": "single_object", "include": [{"class": "Bedlington terrier", "count": 1}], "prompt": "a photo of a Bedlington terrier"}
+{"tag": "single_object", "include": [{"class": "Border terrier", "count": 1}], "prompt": "a photo of a Border terrier"}
+{"tag": "single_object", "include": [{"class": "Kerry blue terrier", "count": 1}], "prompt": "a photo of a Kerry blue terrier"}
+{"tag": "single_object", "include": [{"class": "Irish terrier", "count": 1}], "prompt": "a photo of a Irish terrier"}
+{"tag": "single_object", "include": [{"class": "Norfolk terrier", "count": 1}], "prompt": "a photo of a Norfolk terrier"}
+{"tag": "single_object", "include": [{"class": "Norwich terrier", "count": 1}], "prompt": "a photo of a Norwich terrier"}
+{"tag": "single_object", "include": [{"class": "Yorkshire terrier", "count": 1}], "prompt": "a photo of a Yorkshire terrier"}
+{"tag": "single_object", "include": [{"class": "wire-haired fox terrier", "count": 1}], "prompt": "a photo of a wire-haired fox terrier"}
+{"tag": "single_object", "include": [{"class": "Lakeland terrier", "count": 1}], "prompt": "a photo of a Lakeland terrier"}
+{"tag": "single_object", "include": [{"class": "Sealyham terrier", "count": 1}], "prompt": "a photo of a Sealyham terrier"}
+{"tag": "single_object", "include": [{"class": "Airedale terrier", "count": 1}], "prompt": "a photo of a Airedale terrier"}
+{"tag": "single_object", "include": [{"class": "cairn terrier", "count": 1}], "prompt": "a photo of a cairn terrier"}
+{"tag": "single_object", "include": [{"class": "Australian terrier", "count": 1}], "prompt": "a photo of a Australian terrier"}
+{"tag": "single_object", "include": [{"class": "Dandie Dinmont", "count": 1}], "prompt": "a photo of a Dandie Dinmont"}
+{"tag": "single_object", "include": [{"class": "Boston bull", "count": 1}], "prompt": "a photo of a Boston bull"}
+{"tag": "single_object", "include": [{"class": "miniature schnauzer", "count": 1}], "prompt": "a photo of a miniature schnauzer"}
+{"tag": "single_object", "include": [{"class": "giant schnauzer", "count": 1}], "prompt": "a photo of a giant schnauzer"}
+{"tag": "single_object", "include": [{"class": "standard schnauzer", "count": 1}], "prompt": "a photo of a standard schnauzer"}
+{"tag": "single_object", "include": [{"class": "Scottish terrier", "count": 1}], "prompt": "a photo of a Scottish terrier"}
+{"tag": "single_object", "include": [{"class": "chrysanthemum dog", "count": 1}], "prompt": "a photo of a chrysanthemum dog"}
+{"tag": "single_object", "include": [{"class": "silky terrier", "count": 1}], "prompt": "a photo of a silky terrier"}
+{"tag": "single_object", "include": [{"class": "soft-coated wheaten terrier", "count": 1}], "prompt": "a photo of a soft-coated wheaten terrier"}
+{"tag": "single_object", "include": [{"class": "West Highland white terrier", "count": 1}], "prompt": "a photo of a West Highland white terrier"}
+{"tag": "single_object", "include": [{"class": "Lhasa", "count": 1}], "prompt": "a photo of a Lhasa"}
+{"tag": "single_object", "include": [{"class": "flat-coated retriever", "count": 1}], "prompt": "a photo of a flat-coated retriever"}
+{"tag": "single_object", "include": [{"class": "curly-coated retriever", "count": 1}], "prompt": "a photo of a curly-coated retriever"}
+{"tag": "single_object", "include": [{"class": "golden retriever", "count": 1}], "prompt": "a photo of a golden retriever"}
+{"tag": "single_object", "include": [{"class": "Labrador retriever", "count": 1}], "prompt": "a photo of a Labrador retriever"}
+{"tag": "single_object", "include": [{"class": "Chesapeake Bay retriever", "count": 1}], "prompt": "a photo of a Chesapeake Bay retriever"}
+{"tag": "single_object", "include": [{"class": "German short-haired pointer", "count": 1}], "prompt": "a photo of a German short-haired pointer"}
+{"tag": "single_object", "include": [{"class": "vizsla", "count": 1}], "prompt": "a photo of a vizsla"}
+{"tag": "single_object", "include": [{"class": "English setter", "count": 1}], "prompt": "a photo of a English setter"}
+{"tag": "single_object", "include": [{"class": "red setter", "count": 1}], "prompt": "a photo of a red setter"}
+{"tag": "single_object", "include": [{"class": "Gordon setter", "count": 1}], "prompt": "a photo of a Gordon setter"}
+{"tag": "single_object", "include": [{"class": "Brittany spaniel", "count": 1}], "prompt": "a photo of a Brittany spaniel"}
+{"tag": "single_object", "include": [{"class": "clumber spaniel", "count": 1}], "prompt": "a photo of a clumber spaniel"}
+{"tag": "single_object", "include": [{"class": "English springer", "count": 1}], "prompt": "a photo of a English springer"}
+{"tag": "single_object", "include": [{"class": "Welsh springer spaniel", "count": 1}], "prompt": "a photo of a Welsh springer spaniel"}
+{"tag": "single_object", "include": [{"class": "cocker", "count": 1}], "prompt": "a photo of a cocker"}
+{"tag": "single_object", "include": [{"class": "Sussex spaniel", "count": 1}], "prompt": "a photo of a Sussex spaniel"}
+{"tag": "single_object", "include": [{"class": "Irish water spaniel", "count": 1}], "prompt": "a photo of a Irish water spaniel"}
+{"tag": "single_object", "include": [{"class": "kuvasz", "count": 1}], "prompt": "a photo of a kuvasz"}
+{"tag": "single_object", "include": [{"class": "schipperke", "count": 1}], "prompt": "a photo of a schipperke"}
+{"tag": "single_object", "include": [{"class": "groenendael", "count": 1}], "prompt": "a photo of a groenendael"}
+{"tag": "single_object", "include": [{"class": "malinois", "count": 1}], "prompt": "a photo of a malinois"}
+{"tag": "single_object", "include": [{"class": "briard", "count": 1}], "prompt": "a photo of a briard"}
+{"tag": "single_object", "include": [{"class": "kelpie", "count": 1}], "prompt": "a photo of a kelpie"}
+{"tag": "single_object", "include": [{"class": "komondor", "count": 1}], "prompt": "a photo of a komondor"}
+{"tag": "single_object", "include": [{"class": "bobtail", "count": 1}], "prompt": "a photo of a bobtail"}
+{"tag": "single_object", "include": [{"class": "Shetland sheepdog", "count": 1}], "prompt": "a photo of a Shetland sheepdog"}
+{"tag": "single_object", "include": [{"class": "collie", "count": 1}], "prompt": "a photo of a collie"}
+{"tag": "single_object", "include": [{"class": "Border collie", "count": 1}], "prompt": "a photo of a Border collie"}
+{"tag": "single_object", "include": [{"class": "Bouviers des Flandres", "count": 1}], "prompt": "a photo of a Bouviers des Flandres"}
+{"tag": "single_object", "include": [{"class": "Rottweiler", "count": 1}], "prompt": "a photo of a Rottweiler"}
+{"tag": "single_object", "include": [{"class": "alsatian", "count": 1}], "prompt": "a photo of a alsatian"}
+{"tag": "single_object", "include": [{"class": "Doberman pinscher", "count": 1}], "prompt": "a photo of a Doberman pinscher"}
+{"tag": "single_object", "include": [{"class": "miniature pinscher", "count": 1}], "prompt": "a photo of a miniature pinscher"}
+{"tag": "single_object", "include": [{"class": "Greater Swiss Mountain dog", "count": 1}], "prompt": "a photo of a Greater Swiss Mountain dog"}
+{"tag": "single_object", "include": [{"class": "Bernese mountain dog", "count": 1}], "prompt": "a photo of a Bernese mountain dog"}
+{"tag": "single_object", "include": [{"class": "Appenzeller", "count": 1}], "prompt": "a photo of a Appenzeller"}
+{"tag": "single_object", "include": [{"class": "EntleBucher", "count": 1}], "prompt": "a photo of a EntleBucher"}
+{"tag": "single_object", "include": [{"class": "boxer", "count": 1}], "prompt": "a photo of a boxer"}
+{"tag": "single_object", "include": [{"class": "bull mastiff", "count": 1}], "prompt": "a photo of a bull mastiff"}
+{"tag": "single_object", "include": [{"class": "Tibetan mastiff", "count": 1}], "prompt": "a photo of a Tibetan mastiff"}
+{"tag": "single_object", "include": [{"class": "French bulldog", "count": 1}], "prompt": "a photo of a French bulldog"}
+{"tag": "single_object", "include": [{"class": "Great Dane", "count": 1}], "prompt": "a photo of a Great Dane"}
+{"tag": "single_object", "include": [{"class": "Saint Bernard", "count": 1}], "prompt": "a photo of a Saint Bernard"}
+{"tag": "single_object", "include": [{"class": "husky", "count": 1}], "prompt": "a photo of a husky"}
+{"tag": "single_object", "include": [{"class": "malemute", "count": 1}], "prompt": "a photo of a malemute"}
+{"tag": "single_object", "include": [{"class": "Siberian husky", "count": 1}], "prompt": "a photo of a Siberian husky"}
+{"tag": "single_object", "include": [{"class": "coach dog", "count": 1}], "prompt": "a photo of a coach dog"}
+{"tag": "single_object", "include": [{"class": "affenpinscher", "count": 1}], "prompt": "a photo of a affenpinscher"}
+{"tag": "single_object", "include": [{"class": "basenji", "count": 1}], "prompt": "a photo of a basenji"}
+{"tag": "single_object", "include": [{"class": "pug", "count": 1}], "prompt": "a photo of a pug"}
+{"tag": "single_object", "include": [{"class": "Leonberg", "count": 1}], "prompt": "a photo of a Leonberg"}
+{"tag": "single_object", "include": [{"class": "Newfoundland dog", "count": 1}], "prompt": "a photo of a Newfoundland dog"}
+{"tag": "single_object", "include": [{"class": "Great Pyrenees", "count": 1}], "prompt": "a photo of a Great Pyrenees"}
+{"tag": "single_object", "include": [{"class": "Samoyede", "count": 1}], "prompt": "a photo of a Samoyede"}
+{"tag": "single_object", "include": [{"class": "Pomeranian", "count": 1}], "prompt": "a photo of a Pomeranian"}
+{"tag": "single_object", "include": [{"class": "chow chow", "count": 1}], "prompt": "a photo of a chow chow"}
+{"tag": "single_object", "include": [{"class": "keeshond", "count": 1}], "prompt": "a photo of a keeshond"}
+{"tag": "single_object", "include": [{"class": "Brabancon griffon", "count": 1}], "prompt": "a photo of a Brabancon griffon"}
+{"tag": "single_object", "include": [{"class": "Pembroke Welsh corgi", "count": 1}], "prompt": "a photo of a Pembroke Welsh corgi"}
+{"tag": "single_object", "include": [{"class": "Cardigan", "count": 1}], "prompt": "a photo of a Cardigan"}
+{"tag": "single_object", "include": [{"class": "toy poodle", "count": 1}], "prompt": "a photo of a toy poodle"}
+{"tag": "single_object", "include": [{"class": "miniature poodle", "count": 1}], "prompt": "a photo of a miniature poodle"}
+{"tag": "single_object", "include": [{"class": "standard poodle", "count": 1}], "prompt": "a photo of a standard poodle"}
+{"tag": "single_object", "include": [{"class": "Mexican hairless", "count": 1}], "prompt": "a photo of a Mexican hairless"}
+{"tag": "single_object", "include": [{"class": "grey wolf", "count": 1}], "prompt": "a photo of a grey wolf"}
+{"tag": "single_object", "include": [{"class": "white wolf", "count": 1}], "prompt": "a photo of a white wolf"}
+{"tag": "single_object", "include": [{"class": "red wolf", "count": 1}], "prompt": "a photo of a red wolf"}
+{"tag": "single_object", "include": [{"class": "prairie wolf", "count": 1}], "prompt": "a photo of a prairie wolf"}
+{"tag": "single_object", "include": [{"class": "warrigal", "count": 1}], "prompt": "a photo of a warrigal"}
+{"tag": "single_object", "include": [{"class": "dhole", "count": 1}], "prompt": "a photo of a dhole"}
+{"tag": "single_object", "include": [{"class": "hyena dog", "count": 1}], "prompt": "a photo of a hyena dog"}
+{"tag": "single_object", "include": [{"class": "hyaena", "count": 1}], "prompt": "a photo of a hyaena"}
+{"tag": "single_object", "include": [{"class": "red fox", "count": 1}], "prompt": "a photo of a red fox"}
+{"tag": "single_object", "include": [{"class": "kit fox", "count": 1}], "prompt": "a photo of a kit fox"}
+{"tag": "single_object", "include": [{"class": "white fox", "count": 1}], "prompt": "a photo of a white fox"}
+{"tag": "single_object", "include": [{"class": "grey fox", "count": 1}], "prompt": "a photo of a grey fox"}
+{"tag": "single_object", "include": [{"class": "tabby cat", "count": 1}], "prompt": "a photo of a tabby cat"}
+{"tag": "single_object", "include": [{"class": "tiger cat", "count": 1}], "prompt": "a photo of a tiger cat"}
+{"tag": "single_object", "include": [{"class": "Persian cat", "count": 1}], "prompt": "a photo of a Persian cat"}
+{"tag": "single_object", "include": [{"class": "Siamese cat", "count": 1}], "prompt": "a photo of a Siamese cat"}
+{"tag": "single_object", "include": [{"class": "Egyptian cat", "count": 1}], "prompt": "a photo of a Egyptian cat"}
+{"tag": "single_object", "include": [{"class": "catamount", "count": 1}], "prompt": "a photo of a catamount"}
+{"tag": "single_object", "include": [{"class": "lynx", "count": 1}], "prompt": "a photo of a lynx"}
+{"tag": "single_object", "include": [{"class": "leopard", "count": 1}], "prompt": "a photo of a leopard"}
+{"tag": "single_object", "include": [{"class": "snow leopard", "count": 1}], "prompt": "a photo of a snow leopard"}
+{"tag": "single_object", "include": [{"class": "panther", "count": 1}], "prompt": "a photo of a panther"}
+{"tag": "single_object", "include": [{"class": "lion", "count": 1}], "prompt": "a photo of a lion"}
+{"tag": "single_object", "include": [{"class": "tiger", "count": 1}], "prompt": "a photo of a tiger"}
+{"tag": "single_object", "include": [{"class": "cheetah", "count": 1}], "prompt": "a photo of a cheetah"}
+{"tag": "single_object", "include": [{"class": "brown bear", "count": 1}], "prompt": "a photo of a brown bear"}
+{"tag": "single_object", "include": [{"class": "black bear", "count": 1}], "prompt": "a photo of a black bear"}
+{"tag": "single_object", "include": [{"class": "polar bear", "count": 1}], "prompt": "a photo of a polar bear"}
+{"tag": "single_object", "include": [{"class": "sloth bear", "count": 1}], "prompt": "a photo of a sloth bear"}
+{"tag": "single_object", "include": [{"class": "mongoose", "count": 1}], "prompt": "a photo of a mongoose"}
+{"tag": "single_object", "include": [{"class": "mierkat", "count": 1}], "prompt": "a photo of a mierkat"}
+{"tag": "single_object", "include": [{"class": "tiger beetle", "count": 1}], "prompt": "a photo of a tiger beetle"}
+{"tag": "single_object", "include": [{"class": "lady beetle", "count": 1}], "prompt": "a photo of a lady beetle"}
+{"tag": "single_object", "include": [{"class": "ground beetle", "count": 1}], "prompt": "a photo of a ground beetle"}
+{"tag": "single_object", "include": [{"class": "longicorn beetle", "count": 1}], "prompt": "a photo of a longicorn beetle"}
+{"tag": "single_object", "include": [{"class": "chrysomelid", "count": 1}], "prompt": "a photo of a chrysomelid"}
+{"tag": "single_object", "include": [{"class": "dung beetle", "count": 1}], "prompt": "a photo of a dung beetle"}
+{"tag": "single_object", "include": [{"class": "rhinoceros beetle", "count": 1}], "prompt": "a photo of a rhinoceros beetle"}
+{"tag": "single_object", "include": [{"class": "weevil", "count": 1}], "prompt": "a photo of a weevil"}
+{"tag": "single_object", "include": [{"class": "fly", "count": 1}], "prompt": "a photo of a fly"}
+{"tag": "single_object", "include": [{"class": "bee", "count": 1}], "prompt": "a photo of a bee"}
+{"tag": "single_object", "include": [{"class": "pismire", "count": 1}], "prompt": "a photo of a pismire"}
+{"tag": "single_object", "include": [{"class": "grasshopper", "count": 1}], "prompt": "a photo of a grasshopper"}
+{"tag": "single_object", "include": [{"class": "cricket", "count": 1}], "prompt": "a photo of a cricket"}
+{"tag": "single_object", "include": [{"class": "stick insect", "count": 1}], "prompt": "a photo of a stick insect"}
+{"tag": "single_object", "include": [{"class": "cockroach", "count": 1}], "prompt": "a photo of a cockroach"}
+{"tag": "single_object", "include": [{"class": "mantid", "count": 1}], "prompt": "a photo of a mantid"}
+{"tag": "single_object", "include": [{"class": "cicada", "count": 1}], "prompt": "a photo of a cicada"}
+{"tag": "single_object", "include": [{"class": "leafhopper", "count": 1}], "prompt": "a photo of a leafhopper"}
+{"tag": "single_object", "include": [{"class": "lacewing fly", "count": 1}], "prompt": "a photo of a lacewing fly"}
+{"tag": "single_object", "include": [{"class": "darning needle", "count": 1}], "prompt": "a photo of a darning needle"}
+{"tag": "single_object", "include": [{"class": "damselfly", "count": 1}], "prompt": "a photo of a damselfly"}
+{"tag": "single_object", "include": [{"class": "admiral", "count": 1}], "prompt": "a photo of a admiral"}
+{"tag": "single_object", "include": [{"class": "ringlet", "count": 1}], "prompt": "a photo of a ringlet"}
+{"tag": "single_object", "include": [{"class": "milkweed butterfly", "count": 1}], "prompt": "a photo of a milkweed butterfly"}
+{"tag": "single_object", "include": [{"class": "cabbage butterfly", "count": 1}], "prompt": "a photo of a cabbage butterfly"}
+{"tag": "single_object", "include": [{"class": "sulphur butterfly", "count": 1}], "prompt": "a photo of a sulphur butterfly"}
+{"tag": "single_object", "include": [{"class": "lycaenid butterfly", "count": 1}], "prompt": "a photo of a lycaenid butterfly"}
+{"tag": "single_object", "include": [{"class": "sea star", "count": 1}], "prompt": "a photo of a sea star"}
+{"tag": "single_object", "include": [{"class": "sea urchin", "count": 1}], "prompt": "a photo of a sea urchin"}
+{"tag": "single_object", "include": [{"class": "sea cucumber", "count": 1}], "prompt": "a photo of a sea cucumber"}
+{"tag": "single_object", "include": [{"class": "wood rabbit", "count": 1}], "prompt": "a photo of a wood rabbit"}
+{"tag": "single_object", "include": [{"class": "hare", "count": 1}], "prompt": "a photo of a hare"}
+{"tag": "single_object", "include": [{"class": "Angora rabbit", "count": 1}], "prompt": "a photo of a Angora rabbit"}
+{"tag": "single_object", "include": [{"class": "hamster", "count": 1}], "prompt": "a photo of a hamster"}
+{"tag": "single_object", "include": [{"class": "porcupine", "count": 1}], "prompt": "a photo of a porcupine"}
+{"tag": "single_object", "include": [{"class": "fox squirrel", "count": 1}], "prompt": "a photo of a fox squirrel"}
+{"tag": "single_object", "include": [{"class": "marmot", "count": 1}], "prompt": "a photo of a marmot"}
+{"tag": "single_object", "include": [{"class": "beaver", "count": 1}], "prompt": "a photo of a beaver"}
+{"tag": "single_object", "include": [{"class": "guinea pig", "count": 1}], "prompt": "a photo of a guinea pig"}
+{"tag": "single_object", "include": [{"class": "sorrel", "count": 1}], "prompt": "a photo of a sorrel"}
+{"tag": "single_object", "include": [{"class": "zebra", "count": 1}], "prompt": "a photo of a zebra"}
+{"tag": "single_object", "include": [{"class": "squealer", "count": 1}], "prompt": "a photo of a squealer"}
+{"tag": "single_object", "include": [{"class": "wild boar", "count": 1}], "prompt": "a photo of a wild boar"}
+{"tag": "single_object", "include": [{"class": "warthog", "count": 1}], "prompt": "a photo of a warthog"}
+{"tag": "single_object", "include": [{"class": "hippopotamus", "count": 1}], "prompt": "a photo of a hippopotamus"}
+{"tag": "single_object", "include": [{"class": "ox", "count": 1}], "prompt": "a photo of a ox"}
+{"tag": "single_object", "include": [{"class": "water ox", "count": 1}], "prompt": "a photo of a water ox"}
+{"tag": "single_object", "include": [{"class": "bison", "count": 1}], "prompt": "a photo of a bison"}
+{"tag": "single_object", "include": [{"class": "tup", "count": 1}], "prompt": "a photo of a tup"}
+{"tag": "single_object", "include": [{"class": "bighorn", "count": 1}], "prompt": "a photo of a bighorn"}
+{"tag": "single_object", "include": [{"class": "ibex", "count": 1}], "prompt": "a photo of a ibex"}
+{"tag": "single_object", "include": [{"class": "hartebeest", "count": 1}], "prompt": "a photo of a hartebeest"}
+{"tag": "single_object", "include": [{"class": "impala", "count": 1}], "prompt": "a photo of a impala"}
+{"tag": "single_object", "include": [{"class": "gazelle", "count": 1}], "prompt": "a photo of a gazelle"}
+{"tag": "single_object", "include": [{"class": "dromedary", "count": 1}], "prompt": "a photo of a dromedary"}
+{"tag": "single_object", "include": [{"class": "llama", "count": 1}], "prompt": "a photo of a llama"}
+{"tag": "single_object", "include": [{"class": "weasel", "count": 1}], "prompt": "a photo of a weasel"}
+{"tag": "single_object", "include": [{"class": "mink", "count": 1}], "prompt": "a photo of a mink"}
+{"tag": "single_object", "include": [{"class": "foulmart", "count": 1}], "prompt": "a photo of a foulmart"}
+{"tag": "single_object", "include": [{"class": "ferret", "count": 1}], "prompt": "a photo of a ferret"}
+{"tag": "single_object", "include": [{"class": "otter", "count": 1}], "prompt": "a photo of a otter"}
+{"tag": "single_object", "include": [{"class": "skunk", "count": 1}], "prompt": "a photo of a skunk"}
+{"tag": "single_object", "include": [{"class": "badger", "count": 1}], "prompt": "a photo of a badger"}
+{"tag": "single_object", "include": [{"class": "armadillo", "count": 1}], "prompt": "a photo of a armadillo"}
+{"tag": "single_object", "include": [{"class": "three-toed sloth", "count": 1}], "prompt": "a photo of a three-toed sloth"}
+{"tag": "single_object", "include": [{"class": "orangutang", "count": 1}], "prompt": "a photo of a orangutang"}
+{"tag": "single_object", "include": [{"class": "gorilla", "count": 1}], "prompt": "a photo of a gorilla"}
+{"tag": "single_object", "include": [{"class": "chimpanzee", "count": 1}], "prompt": "a photo of a chimpanzee"}
+{"tag": "single_object", "include": [{"class": "gibbon", "count": 1}], "prompt": "a photo of a gibbon"}
+{"tag": "single_object", "include": [{"class": "siamang", "count": 1}], "prompt": "a photo of a siamang"}
+{"tag": "single_object", "include": [{"class": "guenon monkey", "count": 1}], "prompt": "a photo of a guenon monkey"}
+{"tag": "single_object", "include": [{"class": "hussar monkey", "count": 1}], "prompt": "a photo of a hussar monkey"}
+{"tag": "single_object", "include": [{"class": "baboon", "count": 1}], "prompt": "a photo of a baboon"}
+{"tag": "single_object", "include": [{"class": "macaque", "count": 1}], "prompt": "a photo of a macaque"}
+{"tag": "single_object", "include": [{"class": "langur", "count": 1}], "prompt": "a photo of a langur"}
+{"tag": "single_object", "include": [{"class": "colobus", "count": 1}], "prompt": "a photo of a colobus"}
+{"tag": "single_object", "include": [{"class": "proboscis monkey", "count": 1}], "prompt": "a photo of a proboscis monkey"}
+{"tag": "single_object", "include": [{"class": "marmoset", "count": 1}], "prompt": "a photo of a marmoset"}
+{"tag": "single_object", "include": [{"class": "ringtail", "count": 1}], "prompt": "a photo of a ringtail"}
+{"tag": "single_object", "include": [{"class": "howler monkey", "count": 1}], "prompt": "a photo of a howler monkey"}
+{"tag": "single_object", "include": [{"class": "titi", "count": 1}], "prompt": "a photo of a titi"}
+{"tag": "single_object", "include": [{"class": "spider monkey", "count": 1}], "prompt": "a photo of a spider monkey"}
+{"tag": "single_object", "include": [{"class": "squirrel monkey", "count": 1}], "prompt": "a photo of a squirrel monkey"}
+{"tag": "single_object", "include": [{"class": "ring-tailed lemur", "count": 1}], "prompt": "a photo of a ring-tailed lemur"}
+{"tag": "single_object", "include": [{"class": "indris", "count": 1}], "prompt": "a photo of a indris"}
+{"tag": "single_object", "include": [{"class": "Elephas maximus", "count": 1}], "prompt": "a photo of a Elephas maximus"}
+{"tag": "single_object", "include": [{"class": "African elephant", "count": 1}], "prompt": "a photo of a African elephant"}
+{"tag": "single_object", "include": [{"class": "panda", "count": 1}], "prompt": "a photo of a panda"}
+{"tag": "single_object", "include": [{"class": "panda bear", "count": 1}], "prompt": "a photo of a panda bear"}
+{"tag": "single_object", "include": [{"class": "snoek", "count": 1}], "prompt": "a photo of a snoek"}
+{"tag": "single_object", "include": [{"class": "eel", "count": 1}], "prompt": "a photo of a eel"}
+{"tag": "single_object", "include": [{"class": "blue jack", "count": 1}], "prompt": "a photo of a blue jack"}
+{"tag": "single_object", "include": [{"class": "rock beauty", "count": 1}], "prompt": "a photo of a rock beauty"}
+{"tag": "single_object", "include": [{"class": "anemone fish", "count": 1}], "prompt": "a photo of a anemone fish"}
+{"tag": "single_object", "include": [{"class": "sturgeon", "count": 1}], "prompt": "a photo of a sturgeon"}
+{"tag": "single_object", "include": [{"class": "billfish", "count": 1}], "prompt": "a photo of a billfish"}
+{"tag": "single_object", "include": [{"class": "lionfish", "count": 1}], "prompt": "a photo of a lionfish"}
+{"tag": "single_object", "include": [{"class": "pufferfish", "count": 1}], "prompt": "a photo of a pufferfish"}
+{"tag": "single_object", "include": [{"class": "abacus", "count": 1}], "prompt": "a photo of a abacus"}
+{"tag": "single_object", "include": [{"class": "abaya", "count": 1}], "prompt": "a photo of a abaya"}
+{"tag": "single_object", "include": [{"class": "squeeze box", "count": 1}], "prompt": "a photo of a squeeze box"}
+{"tag": "single_object", "include": [{"class": "acoustic guitar", "count": 1}], "prompt": "a photo of a acoustic guitar"}
+{"tag": "single_object", "include": [{"class": "carrier", "count": 1}], "prompt": "a photo of a carrier"}
+{"tag": "single_object", "include": [{"class": "airliner", "count": 1}], "prompt": "a photo of a airliner"}
+{"tag": "single_object", "include": [{"class": "airship", "count": 1}], "prompt": "a photo of a airship"}
+{"tag": "single_object", "include": [{"class": "altar", "count": 1}], "prompt": "a photo of a altar"}
+{"tag": "single_object", "include": [{"class": "ambulance", "count": 1}], "prompt": "a photo of a ambulance"}
+{"tag": "single_object", "include": [{"class": "amphibious vehicle", "count": 1}], "prompt": "a photo of a amphibious vehicle"}
+{"tag": "single_object", "include": [{"class": "analog clock", "count": 1}], "prompt": "a photo of a analog clock"}
+{"tag": "single_object", "include": [{"class": "bee house", "count": 1}], "prompt": "a photo of a bee house"}
+{"tag": "single_object", "include": [{"class": "apron", "count": 1}], "prompt": "a photo of a apron"}
+{"tag": "single_object", "include": [{"class": "ash bin", "count": 1}], "prompt": "a photo of a ash bin"}
+{"tag": "single_object", "include": [{"class": "assault gun", "count": 1}], "prompt": "a photo of a assault gun"}
+{"tag": "single_object", "include": [{"class": "haversack", "count": 1}], "prompt": "a photo of a haversack"}
+{"tag": "single_object", "include": [{"class": "bakery", "count": 1}], "prompt": "a photo of a bakery"}
+{"tag": "single_object", "include": [{"class": "balance beam", "count": 1}], "prompt": "a photo of a balance beam"}
+{"tag": "single_object", "include": [{"class": "balloon", "count": 1}], "prompt": "a photo of a balloon"}
+{"tag": "single_object", "include": [{"class": "ballpen", "count": 1}], "prompt": "a photo of a ballpen"}
+{"tag": "single_object", "include": [{"class": "Band Aid", "count": 1}], "prompt": "a photo of a Band Aid"}
+{"tag": "single_object", "include": [{"class": "banjo", "count": 1}], "prompt": "a photo of a banjo"}
+{"tag": "single_object", "include": [{"class": "banister", "count": 1}], "prompt": "a photo of a banister"}
+{"tag": "single_object", "include": [{"class": "barbell", "count": 1}], "prompt": "a photo of a barbell"}
+{"tag": "single_object", "include": [{"class": "barber chair", "count": 1}], "prompt": "a photo of a barber chair"}
+{"tag": "single_object", "include": [{"class": "barbershop", "count": 1}], "prompt": "a photo of a barbershop"}
+{"tag": "single_object", "include": [{"class": "barn", "count": 1}], "prompt": "a photo of a barn"}
+{"tag": "single_object", "include": [{"class": "barometer", "count": 1}], "prompt": "a photo of a barometer"}
+{"tag": "single_object", "include": [{"class": "barrel", "count": 1}], "prompt": "a photo of a barrel"}
+{"tag": "single_object", "include": [{"class": "garden cart", "count": 1}], "prompt": "a photo of a garden cart"}
+{"tag": "single_object", "include": [{"class": "baseball", "count": 1}], "prompt": "a photo of a baseball"}
+{"tag": "single_object", "include": [{"class": "basketball", "count": 1}], "prompt": "a photo of a basketball"}
+{"tag": "single_object", "include": [{"class": "bassinet", "count": 1}], "prompt": "a photo of a bassinet"}
+{"tag": "single_object", "include": [{"class": "bassoon", "count": 1}], "prompt": "a photo of a bassoon"}
+{"tag": "single_object", "include": [{"class": "bathing cap", "count": 1}], "prompt": "a photo of a bathing cap"}
+{"tag": "single_object", "include": [{"class": "bath towel", "count": 1}], "prompt": "a photo of a bath towel"}
+{"tag": "single_object", "include": [{"class": "tub", "count": 1}], "prompt": "a photo of a tub"}
+{"tag": "single_object", "include": [{"class": "estate car", "count": 1}], "prompt": "a photo of a estate car"}
+{"tag": "single_object", "include": [{"class": "lighthouse", "count": 1}], "prompt": "a photo of a lighthouse"}
+{"tag": "single_object", "include": [{"class": "beaker", "count": 1}], "prompt": "a photo of a beaker"}
+{"tag": "single_object", "include": [{"class": "shako", "count": 1}], "prompt": "a photo of a shako"}
+{"tag": "single_object", "include": [{"class": "beer bottle", "count": 1}], "prompt": "a photo of a beer bottle"}
+{"tag": "single_object", "include": [{"class": "beer glass", "count": 1}], "prompt": "a photo of a beer glass"}
+{"tag": "single_object", "include": [{"class": "bell cot", "count": 1}], "prompt": "a photo of a bell cot"}
+{"tag": "single_object", "include": [{"class": "bib", "count": 1}], "prompt": "a photo of a bib"}
+{"tag": "single_object", "include": [{"class": "bicycle-built-for-two", "count": 1}], "prompt": "a photo of a bicycle-built-for-two"}
+{"tag": "single_object", "include": [{"class": "two-piece", "count": 1}], "prompt": "a photo of a two-piece"}
+{"tag": "single_object", "include": [{"class": "binder", "count": 1}], "prompt": "a photo of a binder"}
+{"tag": "single_object", "include": [{"class": "opera glasses", "count": 1}], "prompt": "a photo of a opera glasses"}
+{"tag": "single_object", "include": [{"class": "birdhouse", "count": 1}], "prompt": "a photo of a birdhouse"}
+{"tag": "single_object", "include": [{"class": "boathouse", "count": 1}], "prompt": "a photo of a boathouse"}
+{"tag": "single_object", "include": [{"class": "bobsleigh", "count": 1}], "prompt": "a photo of a bobsleigh"}
+{"tag": "single_object", "include": [{"class": "bolo", "count": 1}], "prompt": "a photo of a bolo"}
+{"tag": "single_object", "include": [{"class": "poke bonnet", "count": 1}], "prompt": "a photo of a poke bonnet"}
+{"tag": "single_object", "include": [{"class": "bookcase", "count": 1}], "prompt": "a photo of a bookcase"}
+{"tag": "single_object", "include": [{"class": "bookstore", "count": 1}], "prompt": "a photo of a bookstore"}
+{"tag": "single_object", "include": [{"class": "bottlecap", "count": 1}], "prompt": "a photo of a bottlecap"}
+{"tag": "single_object", "include": [{"class": "bow", "count": 1}], "prompt": "a photo of a bow"}
+{"tag": "single_object", "include": [{"class": "bow tie", "count": 1}], "prompt": "a photo of a bow tie"}
+{"tag": "single_object", "include": [{"class": "plaque", "count": 1}], "prompt": "a photo of a plaque"}
+{"tag": "single_object", "include": [{"class": "bra", "count": 1}], "prompt": "a photo of a bra"}
+{"tag": "single_object", "include": [{"class": "mole", "count": 1}], "prompt": "a photo of a mole"}
+{"tag": "single_object", "include": [{"class": "aegis", "count": 1}], "prompt": "a photo of a aegis"}
+{"tag": "single_object", "include": [{"class": "broom", "count": 1}], "prompt": "a photo of a broom"}
+{"tag": "single_object", "include": [{"class": "pail", "count": 1}], "prompt": "a photo of a pail"}
+{"tag": "single_object", "include": [{"class": "buckle", "count": 1}], "prompt": "a photo of a buckle"}
+{"tag": "single_object", "include": [{"class": "bulletproof vest", "count": 1}], "prompt": "a photo of a bulletproof vest"}
+{"tag": "single_object", "include": [{"class": "bullet", "count": 1}], "prompt": "a photo of a bullet"}
+{"tag": "single_object", "include": [{"class": "meat market", "count": 1}], "prompt": "a photo of a meat market"}
+{"tag": "single_object", "include": [{"class": "cab", "count": 1}], "prompt": "a photo of a cab"}
+{"tag": "single_object", "include": [{"class": "cauldron", "count": 1}], "prompt": "a photo of a cauldron"}
+{"tag": "single_object", "include": [{"class": "candle", "count": 1}], "prompt": "a photo of a candle"}
+{"tag": "single_object", "include": [{"class": "cannon", "count": 1}], "prompt": "a photo of a cannon"}
+{"tag": "single_object", "include": [{"class": "canoe", "count": 1}], "prompt": "a photo of a canoe"}
+{"tag": "single_object", "include": [{"class": "tin opener", "count": 1}], "prompt": "a photo of a tin opener"}
+{"tag": "single_object", "include": [{"class": "cardigan", "count": 1}], "prompt": "a photo of a cardigan"}
+{"tag": "single_object", "include": [{"class": "car mirror", "count": 1}], "prompt": "a photo of a car mirror"}
+{"tag": "single_object", "include": [{"class": "carrousel", "count": 1}], "prompt": "a photo of a carrousel"}
+{"tag": "single_object", "include": [{"class": "carpenter", "count": 1}], "prompt": "a photo of a carpenter"}
+{"tag": "single_object", "include": [{"class": "carton", "count": 1}], "prompt": "a photo of a carton"}
+{"tag": "single_object", "include": [{"class": "car wheel", "count": 1}], "prompt": "a photo of a car wheel"}
+{"tag": "single_object", "include": [{"class": "cash machine", "count": 1}], "prompt": "a photo of a cash machine"}
+{"tag": "single_object", "include": [{"class": "cassette", "count": 1}], "prompt": "a photo of a cassette"}
+{"tag": "single_object", "include": [{"class": "cassette player", "count": 1}], "prompt": "a photo of a cassette player"}
+{"tag": "single_object", "include": [{"class": "castle", "count": 1}], "prompt": "a photo of a castle"}
+{"tag": "single_object", "include": [{"class": "catamaran", "count": 1}], "prompt": "a photo of a catamaran"}
+{"tag": "single_object", "include": [{"class": "CD player", "count": 1}], "prompt": "a photo of a CD player"}
+{"tag": "single_object", "include": [{"class": "violoncello", "count": 1}], "prompt": "a photo of a violoncello"}
+{"tag": "single_object", "include": [{"class": "cellular telephone", "count": 1}], "prompt": "a photo of a cellular telephone"}
+{"tag": "single_object", "include": [{"class": "chain", "count": 1}], "prompt": "a photo of a chain"}
+{"tag": "single_object", "include": [{"class": "chainlink fence", "count": 1}], "prompt": "a photo of a chainlink fence"}
+{"tag": "single_object", "include": [{"class": "chain armor", "count": 1}], "prompt": "a photo of a chain armor"}
+{"tag": "single_object", "include": [{"class": "chain saw", "count": 1}], "prompt": "a photo of a chain saw"}
+{"tag": "single_object", "include": [{"class": "chest", "count": 1}], "prompt": "a photo of a chest"}
+{"tag": "single_object", "include": [{"class": "commode", "count": 1}], "prompt": "a photo of a commode"}
+{"tag": "single_object", "include": [{"class": "chime", "count": 1}], "prompt": "a photo of a chime"}
+{"tag": "single_object", "include": [{"class": "china closet", "count": 1}], "prompt": "a photo of a china closet"}
+{"tag": "single_object", "include": [{"class": "Christmas stocking", "count": 1}], "prompt": "a photo of a Christmas stocking"}
+{"tag": "single_object", "include": [{"class": "church building", "count": 1}], "prompt": "a photo of a church building"}
+{"tag": "single_object", "include": [{"class": "movie house", "count": 1}], "prompt": "a photo of a movie house"}
+{"tag": "single_object", "include": [{"class": "chopper", "count": 1}], "prompt": "a photo of a chopper"}
+{"tag": "single_object", "include": [{"class": "cliff dwelling", "count": 1}], "prompt": "a photo of a cliff dwelling"}
+{"tag": "single_object", "include": [{"class": "cloak", "count": 1}], "prompt": "a photo of a cloak"}
+{"tag": "single_object", "include": [{"class": "geta", "count": 1}], "prompt": "a photo of a geta"}
+{"tag": "single_object", "include": [{"class": "cocktail shaker", "count": 1}], "prompt": "a photo of a cocktail shaker"}
+{"tag": "single_object", "include": [{"class": "coffee mug", "count": 1}], "prompt": "a photo of a coffee mug"}
+{"tag": "single_object", "include": [{"class": "coffeepot", "count": 1}], "prompt": "a photo of a coffeepot"}
+{"tag": "single_object", "include": [{"class": "coil", "count": 1}], "prompt": "a photo of a coil"}
+{"tag": "single_object", "include": [{"class": "combination lock", "count": 1}], "prompt": "a photo of a combination lock"}
+{"tag": "single_object", "include": [{"class": "keypad", "count": 1}], "prompt": "a photo of a keypad"}
+{"tag": "single_object", "include": [{"class": "candy store", "count": 1}], "prompt": "a photo of a candy store"}
+{"tag": "single_object", "include": [{"class": "container vessel", "count": 1}], "prompt": "a photo of a container vessel"}
+{"tag": "single_object", "include": [{"class": "convertible", "count": 1}], "prompt": "a photo of a convertible"}
+{"tag": "single_object", "include": [{"class": "corkscrew", "count": 1}], "prompt": "a photo of a corkscrew"}
+{"tag": "single_object", "include": [{"class": "trump", "count": 1}], "prompt": "a photo of a trump"}
+{"tag": "single_object", "include": [{"class": "cowboy boot", "count": 1}], "prompt": "a photo of a cowboy boot"}
+{"tag": "single_object", "include": [{"class": "cowboy hat", "count": 1}], "prompt": "a photo of a cowboy hat"}
+{"tag": "single_object", "include": [{"class": "cradle", "count": 1}], "prompt": "a photo of a cradle"}
+{"tag": "single_object", "include": [{"class": "crane", "count": 1}], "prompt": "a photo of a crane"}
+{"tag": "single_object", "include": [{"class": "crash helmet", "count": 1}], "prompt": "a photo of a crash helmet"}
+{"tag": "single_object", "include": [{"class": "crate", "count": 1}], "prompt": "a photo of a crate"}
+{"tag": "single_object", "include": [{"class": "crib", "count": 1}], "prompt": "a photo of a crib"}
+{"tag": "single_object", "include": [{"class": "Crock Pot", "count": 1}], "prompt": "a photo of a Crock Pot"}
+{"tag": "single_object", "include": [{"class": "croquet ball", "count": 1}], "prompt": "a photo of a croquet ball"}
+{"tag": "single_object", "include": [{"class": "crutch", "count": 1}], "prompt": "a photo of a crutch"}
+{"tag": "single_object", "include": [{"class": "cuirass", "count": 1}], "prompt": "a photo of a cuirass"}
+{"tag": "single_object", "include": [{"class": "dike", "count": 1}], "prompt": "a photo of a dike"}
+{"tag": "single_object", "include": [{"class": "desk", "count": 1}], "prompt": "a photo of a desk"}
+{"tag": "single_object", "include": [{"class": "desktop computer", "count": 1}], "prompt": "a photo of a desktop computer"}
+{"tag": "single_object", "include": [{"class": "dial phone", "count": 1}], "prompt": "a photo of a dial phone"}
+{"tag": "single_object", "include": [{"class": "nappy", "count": 1}], "prompt": "a photo of a nappy"}
+{"tag": "single_object", "include": [{"class": "digital clock", "count": 1}], "prompt": "a photo of a digital clock"}
+{"tag": "single_object", "include": [{"class": "digital watch", "count": 1}], "prompt": "a photo of a digital watch"}
+{"tag": "single_object", "include": [{"class": "board", "count": 1}], "prompt": "a photo of a board"}
+{"tag": "single_object", "include": [{"class": "dishcloth", "count": 1}], "prompt": "a photo of a dishcloth"}
+{"tag": "single_object", "include": [{"class": "dish washer", "count": 1}], "prompt": "a photo of a dish washer"}
+{"tag": "single_object", "include": [{"class": "disk brake", "count": 1}], "prompt": "a photo of a disk brake"}
+{"tag": "single_object", "include": [{"class": "dockage", "count": 1}], "prompt": "a photo of a dockage"}
+{"tag": "single_object", "include": [{"class": "dogsled", "count": 1}], "prompt": "a photo of a dogsled"}
+{"tag": "single_object", "include": [{"class": "dome", "count": 1}], "prompt": "a photo of a dome"}
+{"tag": "single_object", "include": [{"class": "welcome mat", "count": 1}], "prompt": "a photo of a welcome mat"}
+{"tag": "single_object", "include": [{"class": "drilling platform", "count": 1}], "prompt": "a photo of a drilling platform"}
+{"tag": "single_object", "include": [{"class": "tympan", "count": 1}], "prompt": "a photo of a tympan"}
+{"tag": "single_object", "include": [{"class": "drumstick", "count": 1}], "prompt": "a photo of a drumstick"}
+{"tag": "single_object", "include": [{"class": "dumbbell", "count": 1}], "prompt": "a photo of a dumbbell"}
+{"tag": "single_object", "include": [{"class": "Dutch oven", "count": 1}], "prompt": "a photo of a Dutch oven"}
+{"tag": "single_object", "include": [{"class": "electric fan", "count": 1}], "prompt": "a photo of a electric fan"}
+{"tag": "single_object", "include": [{"class": "electric guitar", "count": 1}], "prompt": "a photo of a electric guitar"}
+{"tag": "single_object", "include": [{"class": "electric locomotive", "count": 1}], "prompt": "a photo of a electric locomotive"}
+{"tag": "single_object", "include": [{"class": "entertainment center", "count": 1}], "prompt": "a photo of a entertainment center"}
+{"tag": "single_object", "include": [{"class": "envelope", "count": 1}], "prompt": "a photo of a envelope"}
+{"tag": "single_object", "include": [{"class": "espresso maker", "count": 1}], "prompt": "a photo of a espresso maker"}
+{"tag": "single_object", "include": [{"class": "face powder", "count": 1}], "prompt": "a photo of a face powder"}
+{"tag": "single_object", "include": [{"class": "feather boa", "count": 1}], "prompt": "a photo of a feather boa"}
+{"tag": "single_object", "include": [{"class": "filing cabinet", "count": 1}], "prompt": "a photo of a filing cabinet"}
+{"tag": "single_object", "include": [{"class": "fireboat", "count": 1}], "prompt": "a photo of a fireboat"}
+{"tag": "single_object", "include": [{"class": "fire truck", "count": 1}], "prompt": "a photo of a fire truck"}
+{"tag": "single_object", "include": [{"class": "fireguard", "count": 1}], "prompt": "a photo of a fireguard"}
+{"tag": "single_object", "include": [{"class": "flagstaff", "count": 1}], "prompt": "a photo of a flagstaff"}
+{"tag": "single_object", "include": [{"class": "flute", "count": 1}], "prompt": "a photo of a flute"}
+{"tag": "single_object", "include": [{"class": "folding chair", "count": 1}], "prompt": "a photo of a folding chair"}
+{"tag": "single_object", "include": [{"class": "football helmet", "count": 1}], "prompt": "a photo of a football helmet"}
+{"tag": "single_object", "include": [{"class": "forklift", "count": 1}], "prompt": "a photo of a forklift"}
+{"tag": "single_object", "include": [{"class": "fountain", "count": 1}], "prompt": "a photo of a fountain"}
+{"tag": "single_object", "include": [{"class": "fountain pen", "count": 1}], "prompt": "a photo of a fountain pen"}
+{"tag": "single_object", "include": [{"class": "four-poster", "count": 1}], "prompt": "a photo of a four-poster"}
+{"tag": "single_object", "include": [{"class": "freight car", "count": 1}], "prompt": "a photo of a freight car"}
+{"tag": "single_object", "include": [{"class": "horn", "count": 1}], "prompt": "a photo of a horn"}
+{"tag": "single_object", "include": [{"class": "skillet", "count": 1}], "prompt": "a photo of a skillet"}
+{"tag": "single_object", "include": [{"class": "fur coat", "count": 1}], "prompt": "a photo of a fur coat"}
+{"tag": "single_object", "include": [{"class": "garbage truck", "count": 1}], "prompt": "a photo of a garbage truck"}
+{"tag": "single_object", "include": [{"class": "gas helmet", "count": 1}], "prompt": "a photo of a gas helmet"}
+{"tag": "single_object", "include": [{"class": "gasoline pump", "count": 1}], "prompt": "a photo of a gasoline pump"}
+{"tag": "single_object", "include": [{"class": "goblet", "count": 1}], "prompt": "a photo of a goblet"}
+{"tag": "single_object", "include": [{"class": "go-kart", "count": 1}], "prompt": "a photo of a go-kart"}
+{"tag": "single_object", "include": [{"class": "golf ball", "count": 1}], "prompt": "a photo of a golf ball"}
+{"tag": "single_object", "include": [{"class": "golfcart", "count": 1}], "prompt": "a photo of a golfcart"}
+{"tag": "single_object", "include": [{"class": "gondola", "count": 1}], "prompt": "a photo of a gondola"}
+{"tag": "single_object", "include": [{"class": "tam-tam", "count": 1}], "prompt": "a photo of a tam-tam"}
+{"tag": "single_object", "include": [{"class": "gown", "count": 1}], "prompt": "a photo of a gown"}
+{"tag": "single_object", "include": [{"class": "grand piano", "count": 1}], "prompt": "a photo of a grand piano"}
+{"tag": "single_object", "include": [{"class": "glasshouse", "count": 1}], "prompt": "a photo of a glasshouse"}
+{"tag": "single_object", "include": [{"class": "radiator grille", "count": 1}], "prompt": "a photo of a radiator grille"}
+{"tag": "single_object", "include": [{"class": "grocery store", "count": 1}], "prompt": "a photo of a grocery store"}
+{"tag": "single_object", "include": [{"class": "guillotine", "count": 1}], "prompt": "a photo of a guillotine"}
+{"tag": "single_object", "include": [{"class": "hair slide", "count": 1}], "prompt": "a photo of a hair slide"}
+{"tag": "single_object", "include": [{"class": "hair spray", "count": 1}], "prompt": "a photo of a hair spray"}
+{"tag": "single_object", "include": [{"class": "half track", "count": 1}], "prompt": "a photo of a half track"}
+{"tag": "single_object", "include": [{"class": "hammer", "count": 1}], "prompt": "a photo of a hammer"}
+{"tag": "single_object", "include": [{"class": "hamper", "count": 1}], "prompt": "a photo of a hamper"}
+{"tag": "single_object", "include": [{"class": "blow dryer", "count": 1}], "prompt": "a photo of a blow dryer"}
+{"tag": "single_object", "include": [{"class": "hand-held microcomputer", "count": 1}], "prompt": "a photo of a hand-held microcomputer"}
+{"tag": "single_object", "include": [{"class": "hankie", "count": 1}], "prompt": "a photo of a hankie"}
+{"tag": "single_object", "include": [{"class": "fixed disk", "count": 1}], "prompt": "a photo of a fixed disk"}
+{"tag": "single_object", "include": [{"class": "harp", "count": 1}], "prompt": "a photo of a harp"}
+{"tag": "single_object", "include": [{"class": "harp", "count": 1}], "prompt": "a photo of a harp"}
+{"tag": "single_object", "include": [{"class": "reaper", "count": 1}], "prompt": "a photo of a reaper"}
+{"tag": "single_object", "include": [{"class": "hatchet", "count": 1}], "prompt": "a photo of a hatchet"}
+{"tag": "single_object", "include": [{"class": "holster", "count": 1}], "prompt": "a photo of a holster"}
+{"tag": "single_object", "include": [{"class": "home theatre", "count": 1}], "prompt": "a photo of a home theatre"}
+{"tag": "single_object", "include": [{"class": "honeycomb", "count": 1}], "prompt": "a photo of a honeycomb"}
+{"tag": "single_object", "include": [{"class": "hook", "count": 1}], "prompt": "a photo of a hook"}
+{"tag": "single_object", "include": [{"class": "crinoline", "count": 1}], "prompt": "a photo of a crinoline"}
+{"tag": "single_object", "include": [{"class": "high bar", "count": 1}], "prompt": "a photo of a high bar"}
+{"tag": "single_object", "include": [{"class": "horse cart", "count": 1}], "prompt": "a photo of a horse cart"}
+{"tag": "single_object", "include": [{"class": "hourglass", "count": 1}], "prompt": "a photo of a hourglass"}
+{"tag": "single_object", "include": [{"class": "iPod", "count": 1}], "prompt": "a photo of a iPod"}
+{"tag": "single_object", "include": [{"class": "smoothing iron", "count": 1}], "prompt": "a photo of a smoothing iron"}
+{"tag": "single_object", "include": [{"class": "jean", "count": 1}], "prompt": "a photo of a jean"}
+{"tag": "single_object", "include": [{"class": "landrover", "count": 1}], "prompt": "a photo of a landrover"}
+{"tag": "single_object", "include": [{"class": "tee shirt", "count": 1}], "prompt": "a photo of a tee shirt"}
+{"tag": "single_object", "include": [{"class": "jigsaw puzzle", "count": 1}], "prompt": "a photo of a jigsaw puzzle"}
+{"tag": "single_object", "include": [{"class": "ricksha", "count": 1}], "prompt": "a photo of a ricksha"}
+{"tag": "single_object", "include": [{"class": "joystick", "count": 1}], "prompt": "a photo of a joystick"}
+{"tag": "single_object", "include": [{"class": "kimono", "count": 1}], "prompt": "a photo of a kimono"}
+{"tag": "single_object", "include": [{"class": "knee pad", "count": 1}], "prompt": "a photo of a knee pad"}
+{"tag": "single_object", "include": [{"class": "knot", "count": 1}], "prompt": "a photo of a knot"}
+{"tag": "single_object", "include": [{"class": "laboratory coat", "count": 1}], "prompt": "a photo of a laboratory coat"}
+{"tag": "single_object", "include": [{"class": "ladle", "count": 1}], "prompt": "a photo of a ladle"}
+{"tag": "single_object", "include": [{"class": "lampshade", "count": 1}], "prompt": "a photo of a lampshade"}
+{"tag": "single_object", "include": [{"class": "laptop", "count": 1}], "prompt": "a photo of a laptop"}
+{"tag": "single_object", "include": [{"class": "lawn mower", "count": 1}], "prompt": "a photo of a lawn mower"}
+{"tag": "single_object", "include": [{"class": "lens cap", "count": 1}], "prompt": "a photo of a lens cap"}
+{"tag": "single_object", "include": [{"class": "paperknife", "count": 1}], "prompt": "a photo of a paperknife"}
+{"tag": "single_object", "include": [{"class": "library", "count": 1}], "prompt": "a photo of a library"}
+{"tag": "single_object", "include": [{"class": "lifeboat", "count": 1}], "prompt": "a photo of a lifeboat"}
+{"tag": "single_object", "include": [{"class": "light", "count": 1}], "prompt": "a photo of a light"}
+{"tag": "single_object", "include": [{"class": "limo", "count": 1}], "prompt": "a photo of a limo"}
+{"tag": "single_object", "include": [{"class": "ocean liner", "count": 1}], "prompt": "a photo of a ocean liner"}
+{"tag": "single_object", "include": [{"class": "lip rouge", "count": 1}], "prompt": "a photo of a lip rouge"}
+{"tag": "single_object", "include": [{"class": "Loafer", "count": 1}], "prompt": "a photo of a Loafer"}
+{"tag": "single_object", "include": [{"class": "lotion", "count": 1}], "prompt": "a photo of a lotion"}
+{"tag": "single_object", "include": [{"class": "speaker unit", "count": 1}], "prompt": "a photo of a speaker unit"}
+{"tag": "single_object", "include": [{"class": "loupe", "count": 1}], "prompt": "a photo of a loupe"}
+{"tag": "single_object", "include": [{"class": "sawmill", "count": 1}], "prompt": "a photo of a sawmill"}
+{"tag": "single_object", "include": [{"class": "magnetic compass", "count": 1}], "prompt": "a photo of a magnetic compass"}
+{"tag": "single_object", "include": [{"class": "postbag", "count": 1}], "prompt": "a photo of a postbag"}
+{"tag": "single_object", "include": [{"class": "letter box", "count": 1}], "prompt": "a photo of a letter box"}
+{"tag": "single_object", "include": [{"class": "maillot", "count": 1}], "prompt": "a photo of a maillot"}
+{"tag": "single_object", "include": [{"class": "tank suit", "count": 1}], "prompt": "a photo of a tank suit"}
+{"tag": "single_object", "include": [{"class": "manhole cover", "count": 1}], "prompt": "a photo of a manhole cover"}
+{"tag": "single_object", "include": [{"class": "maraca", "count": 1}], "prompt": "a photo of a maraca"}
+{"tag": "single_object", "include": [{"class": "xylophone", "count": 1}], "prompt": "a photo of a xylophone"}
+{"tag": "single_object", "include": [{"class": "mask", "count": 1}], "prompt": "a photo of a mask"}
+{"tag": "single_object", "include": [{"class": "matchstick", "count": 1}], "prompt": "a photo of a matchstick"}
+{"tag": "single_object", "include": [{"class": "maypole", "count": 1}], "prompt": "a photo of a maypole"}
+{"tag": "single_object", "include": [{"class": "labyrinth", "count": 1}], "prompt": "a photo of a labyrinth"}
+{"tag": "single_object", "include": [{"class": "measuring cup", "count": 1}], "prompt": "a photo of a measuring cup"}
+{"tag": "single_object", "include": [{"class": "medicine chest", "count": 1}], "prompt": "a photo of a medicine chest"}
+{"tag": "single_object", "include": [{"class": "megalith", "count": 1}], "prompt": "a photo of a megalith"}
+{"tag": "single_object", "include": [{"class": "mike", "count": 1}], "prompt": "a photo of a mike"}
+{"tag": "single_object", "include": [{"class": "microwave", "count": 1}], "prompt": "a photo of a microwave"}
+{"tag": "single_object", "include": [{"class": "military uniform", "count": 1}], "prompt": "a photo of a military uniform"}
+{"tag": "single_object", "include": [{"class": "milk can", "count": 1}], "prompt": "a photo of a milk can"}
+{"tag": "single_object", "include": [{"class": "minibus", "count": 1}], "prompt": "a photo of a minibus"}
+{"tag": "single_object", "include": [{"class": "mini", "count": 1}], "prompt": "a photo of a mini"}
+{"tag": "single_object", "include": [{"class": "minivan", "count": 1}], "prompt": "a photo of a minivan"}
+{"tag": "single_object", "include": [{"class": "missile", "count": 1}], "prompt": "a photo of a missile"}
+{"tag": "single_object", "include": [{"class": "mitten", "count": 1}], "prompt": "a photo of a mitten"}
+{"tag": "single_object", "include": [{"class": "mixing bowl", "count": 1}], "prompt": "a photo of a mixing bowl"}
+{"tag": "single_object", "include": [{"class": "manufactured home", "count": 1}], "prompt": "a photo of a manufactured home"}
+{"tag": "single_object", "include": [{"class": "Model T", "count": 1}], "prompt": "a photo of a Model T"}
+{"tag": "single_object", "include": [{"class": "modem", "count": 1}], "prompt": "a photo of a modem"}
+{"tag": "single_object", "include": [{"class": "monastery", "count": 1}], "prompt": "a photo of a monastery"}
+{"tag": "single_object", "include": [{"class": "monitor", "count": 1}], "prompt": "a photo of a monitor"}
+{"tag": "single_object", "include": [{"class": "moped", "count": 1}], "prompt": "a photo of a moped"}
+{"tag": "single_object", "include": [{"class": "mortar", "count": 1}], "prompt": "a photo of a mortar"}
+{"tag": "single_object", "include": [{"class": "mortarboard", "count": 1}], "prompt": "a photo of a mortarboard"}
+{"tag": "single_object", "include": [{"class": "mosque", "count": 1}], "prompt": "a photo of a mosque"}
+{"tag": "single_object", "include": [{"class": "mosquito net", "count": 1}], "prompt": "a photo of a mosquito net"}
+{"tag": "single_object", "include": [{"class": "scooter", "count": 1}], "prompt": "a photo of a scooter"}
+{"tag": "single_object", "include": [{"class": "off-roader", "count": 1}], "prompt": "a photo of a off-roader"}
+{"tag": "single_object", "include": [{"class": "mountain tent", "count": 1}], "prompt": "a photo of a mountain tent"}
+{"tag": "single_object", "include": [{"class": "computer mouse", "count": 1}], "prompt": "a photo of a computer mouse"}
+{"tag": "single_object", "include": [{"class": "mousetrap", "count": 1}], "prompt": "a photo of a mousetrap"}
+{"tag": "single_object", "include": [{"class": "moving van", "count": 1}], "prompt": "a photo of a moving van"}
+{"tag": "single_object", "include": [{"class": "muzzle", "count": 1}], "prompt": "a photo of a muzzle"}
+{"tag": "single_object", "include": [{"class": "nail", "count": 1}], "prompt": "a photo of a nail"}
+{"tag": "single_object", "include": [{"class": "neck brace", "count": 1}], "prompt": "a photo of a neck brace"}
+{"tag": "single_object", "include": [{"class": "necklace", "count": 1}], "prompt": "a photo of a necklace"}
+{"tag": "single_object", "include": [{"class": "nipple", "count": 1}], "prompt": "a photo of a nipple"}
+{"tag": "single_object", "include": [{"class": "notebook", "count": 1}], "prompt": "a photo of a notebook"}
+{"tag": "single_object", "include": [{"class": "obelisk", "count": 1}], "prompt": "a photo of a obelisk"}
+{"tag": "single_object", "include": [{"class": "hautboy", "count": 1}], "prompt": "a photo of a hautboy"}
+{"tag": "single_object", "include": [{"class": "sweet potato", "count": 1}], "prompt": "a photo of a sweet potato"}
+{"tag": "single_object", "include": [{"class": "odometer", "count": 1}], "prompt": "a photo of a odometer"}
+{"tag": "single_object", "include": [{"class": "oil filter", "count": 1}], "prompt": "a photo of a oil filter"}
+{"tag": "single_object", "include": [{"class": "pipe organ", "count": 1}], "prompt": "a photo of a pipe organ"}
+{"tag": "single_object", "include": [{"class": "scope", "count": 1}], "prompt": "a photo of a scope"}
+{"tag": "single_object", "include": [{"class": "overskirt", "count": 1}], "prompt": "a photo of a overskirt"}
+{"tag": "single_object", "include": [{"class": "oxcart", "count": 1}], "prompt": "a photo of a oxcart"}
+{"tag": "single_object", "include": [{"class": "oxygen mask", "count": 1}], "prompt": "a photo of a oxygen mask"}
+{"tag": "single_object", "include": [{"class": "packet", "count": 1}], "prompt": "a photo of a packet"}
+{"tag": "single_object", "include": [{"class": "boat paddle", "count": 1}], "prompt": "a photo of a boat paddle"}
+{"tag": "single_object", "include": [{"class": "paddlewheel", "count": 1}], "prompt": "a photo of a paddlewheel"}
+{"tag": "single_object", "include": [{"class": "padlock", "count": 1}], "prompt": "a photo of a padlock"}
+{"tag": "single_object", "include": [{"class": "paintbrush", "count": 1}], "prompt": "a photo of a paintbrush"}
+{"tag": "single_object", "include": [{"class": "palace", "count": 1}], "prompt": "a photo of a palace"}
+{"tag": "single_object", "include": [{"class": "syrinx", "count": 1}], "prompt": "a photo of a syrinx"}
+{"tag": "single_object", "include": [{"class": "paper towel", "count": 1}], "prompt": "a photo of a paper towel"}
+{"tag": "single_object", "include": [{"class": "chute", "count": 1}], "prompt": "a photo of a chute"}
+{"tag": "single_object", "include": [{"class": "bars", "count": 1}], "prompt": "a photo of a bars"}
+{"tag": "single_object", "include": [{"class": "park bench", "count": 1}], "prompt": "a photo of a park bench"}
+{"tag": "single_object", "include": [{"class": "parking meter", "count": 1}], "prompt": "a photo of a parking meter"}
+{"tag": "single_object", "include": [{"class": "carriage", "count": 1}], "prompt": "a photo of a carriage"}
+{"tag": "single_object", "include": [{"class": "terrace", "count": 1}], "prompt": "a photo of a terrace"}
+{"tag": "single_object", "include": [{"class": "pay-station", "count": 1}], "prompt": "a photo of a pay-station"}
+{"tag": "single_object", "include": [{"class": "footstall", "count": 1}], "prompt": "a photo of a footstall"}
+{"tag": "single_object", "include": [{"class": "pencil box", "count": 1}], "prompt": "a photo of a pencil box"}
+{"tag": "single_object", "include": [{"class": "pencil sharpener", "count": 1}], "prompt": "a photo of a pencil sharpener"}
+{"tag": "single_object", "include": [{"class": "perfume", "count": 1}], "prompt": "a photo of a perfume"}
+{"tag": "single_object", "include": [{"class": "Petri dish", "count": 1}], "prompt": "a photo of a Petri dish"}
+{"tag": "single_object", "include": [{"class": "photocopier", "count": 1}], "prompt": "a photo of a photocopier"}
+{"tag": "single_object", "include": [{"class": "plectron", "count": 1}], "prompt": "a photo of a plectron"}
+{"tag": "single_object", "include": [{"class": "pickelhaube", "count": 1}], "prompt": "a photo of a pickelhaube"}
+{"tag": "single_object", "include": [{"class": "picket fence", "count": 1}], "prompt": "a photo of a picket fence"}
+{"tag": "single_object", "include": [{"class": "pickup", "count": 1}], "prompt": "a photo of a pickup"}
+{"tag": "single_object", "include": [{"class": "pier", "count": 1}], "prompt": "a photo of a pier"}
+{"tag": "single_object", "include": [{"class": "piggy bank", "count": 1}], "prompt": "a photo of a piggy bank"}
+{"tag": "single_object", "include": [{"class": "pill bottle", "count": 1}], "prompt": "a photo of a pill bottle"}
+{"tag": "single_object", "include": [{"class": "pillow", "count": 1}], "prompt": "a photo of a pillow"}
+{"tag": "single_object", "include": [{"class": "ping-pong ball", "count": 1}], "prompt": "a photo of a ping-pong ball"}
+{"tag": "single_object", "include": [{"class": "pinwheel", "count": 1}], "prompt": "a photo of a pinwheel"}
+{"tag": "single_object", "include": [{"class": "pirate ship", "count": 1}], "prompt": "a photo of a pirate ship"}
+{"tag": "single_object", "include": [{"class": "ewer", "count": 1}], "prompt": "a photo of a ewer"}
+{"tag": "single_object", "include": [{"class": "plane", "count": 1}], "prompt": "a photo of a plane"}
+{"tag": "single_object", "include": [{"class": "planetarium", "count": 1}], "prompt": "a photo of a planetarium"}
+{"tag": "single_object", "include": [{"class": "plastic bag", "count": 1}], "prompt": "a photo of a plastic bag"}
+{"tag": "single_object", "include": [{"class": "plate rack", "count": 1}], "prompt": "a photo of a plate rack"}
+{"tag": "single_object", "include": [{"class": "plough", "count": 1}], "prompt": "a photo of a plough"}
+{"tag": "single_object", "include": [{"class": "Polaroid camera", "count": 1}], "prompt": "a photo of a Polaroid camera"}
+{"tag": "single_object", "include": [{"class": "pole", "count": 1}], "prompt": "a photo of a pole"}
+{"tag": "single_object", "include": [{"class": "paddy wagon", "count": 1}], "prompt": "a photo of a paddy wagon"}
+{"tag": "single_object", "include": [{"class": "poncho", "count": 1}], "prompt": "a photo of a poncho"}
+{"tag": "single_object", "include": [{"class": "billiard table", "count": 1}], "prompt": "a photo of a billiard table"}
+{"tag": "single_object", "include": [{"class": "pop bottle", "count": 1}], "prompt": "a photo of a pop bottle"}
+{"tag": "single_object", "include": [{"class": "pot", "count": 1}], "prompt": "a photo of a pot"}
+{"tag": "single_object", "include": [{"class": "power drill", "count": 1}], "prompt": "a photo of a power drill"}
+{"tag": "single_object", "include": [{"class": "prayer mat", "count": 1}], "prompt": "a photo of a prayer mat"}
+{"tag": "single_object", "include": [{"class": "printer", "count": 1}], "prompt": "a photo of a printer"}
+{"tag": "single_object", "include": [{"class": "prison", "count": 1}], "prompt": "a photo of a prison"}
+{"tag": "single_object", "include": [{"class": "projectile", "count": 1}], "prompt": "a photo of a projectile"}
+{"tag": "single_object", "include": [{"class": "projector", "count": 1}], "prompt": "a photo of a projector"}
+{"tag": "single_object", "include": [{"class": "hockey puck", "count": 1}], "prompt": "a photo of a hockey puck"}
+{"tag": "single_object", "include": [{"class": "punching ball", "count": 1}], "prompt": "a photo of a punching ball"}
+{"tag": "single_object", "include": [{"class": "purse", "count": 1}], "prompt": "a photo of a purse"}
+{"tag": "single_object", "include": [{"class": "quill", "count": 1}], "prompt": "a photo of a quill"}
+{"tag": "single_object", "include": [{"class": "puff", "count": 1}], "prompt": "a photo of a puff"}
+{"tag": "single_object", "include": [{"class": "racing car", "count": 1}], "prompt": "a photo of a racing car"}
+{"tag": "single_object", "include": [{"class": "racquet", "count": 1}], "prompt": "a photo of a racquet"}
+{"tag": "single_object", "include": [{"class": "radiator", "count": 1}], "prompt": "a photo of a radiator"}
+{"tag": "single_object", "include": [{"class": "wireless", "count": 1}], "prompt": "a photo of a wireless"}
+{"tag": "single_object", "include": [{"class": "radio reflector", "count": 1}], "prompt": "a photo of a radio reflector"}
+{"tag": "single_object", "include": [{"class": "rain barrel", "count": 1}], "prompt": "a photo of a rain barrel"}
+{"tag": "single_object", "include": [{"class": "recreational vehicle", "count": 1}], "prompt": "a photo of a recreational vehicle"}
+{"tag": "single_object", "include": [{"class": "reel", "count": 1}], "prompt": "a photo of a reel"}
+{"tag": "single_object", "include": [{"class": "reflex camera", "count": 1}], "prompt": "a photo of a reflex camera"}
+{"tag": "single_object", "include": [{"class": "icebox", "count": 1}], "prompt": "a photo of a icebox"}
+{"tag": "single_object", "include": [{"class": "remote", "count": 1}], "prompt": "a photo of a remote"}
+{"tag": "single_object", "include": [{"class": "restaurant", "count": 1}], "prompt": "a photo of a restaurant"}
+{"tag": "single_object", "include": [{"class": "revolver", "count": 1}], "prompt": "a photo of a revolver"}
+{"tag": "single_object", "include": [{"class": "rifle", "count": 1}], "prompt": "a photo of a rifle"}
+{"tag": "single_object", "include": [{"class": "rocking chair", "count": 1}], "prompt": "a photo of a rocking chair"}
+{"tag": "single_object", "include": [{"class": "rotisserie", "count": 1}], "prompt": "a photo of a rotisserie"}
+{"tag": "single_object", "include": [{"class": "pencil eraser", "count": 1}], "prompt": "a photo of a pencil eraser"}
+{"tag": "single_object", "include": [{"class": "rugby ball", "count": 1}], "prompt": "a photo of a rugby ball"}
+{"tag": "single_object", "include": [{"class": "rule", "count": 1}], "prompt": "a photo of a rule"}
+{"tag": "single_object", "include": [{"class": "running shoe", "count": 1}], "prompt": "a photo of a running shoe"}
+{"tag": "single_object", "include": [{"class": "safe", "count": 1}], "prompt": "a photo of a safe"}
+{"tag": "single_object", "include": [{"class": "safety pin", "count": 1}], "prompt": "a photo of a safety pin"}
+{"tag": "single_object", "include": [{"class": "saltshaker", "count": 1}], "prompt": "a photo of a saltshaker"}
+{"tag": "single_object", "include": [{"class": "sandal", "count": 1}], "prompt": "a photo of a sandal"}
+{"tag": "single_object", "include": [{"class": "sarong", "count": 1}], "prompt": "a photo of a sarong"}
+{"tag": "single_object", "include": [{"class": "sax", "count": 1}], "prompt": "a photo of a sax"}
+{"tag": "single_object", "include": [{"class": "scabbard", "count": 1}], "prompt": "a photo of a scabbard"}
+{"tag": "single_object", "include": [{"class": "weighing machine", "count": 1}], "prompt": "a photo of a weighing machine"}
+{"tag": "single_object", "include": [{"class": "school bus", "count": 1}], "prompt": "a photo of a school bus"}
+{"tag": "single_object", "include": [{"class": "schooner", "count": 1}], "prompt": "a photo of a schooner"}
+{"tag": "single_object", "include": [{"class": "scoreboard", "count": 1}], "prompt": "a photo of a scoreboard"}
+{"tag": "single_object", "include": [{"class": "screen", "count": 1}], "prompt": "a photo of a screen"}
+{"tag": "single_object", "include": [{"class": "screw", "count": 1}], "prompt": "a photo of a screw"}
+{"tag": "single_object", "include": [{"class": "screwdriver", "count": 1}], "prompt": "a photo of a screwdriver"}
+{"tag": "single_object", "include": [{"class": "seatbelt", "count": 1}], "prompt": "a photo of a seatbelt"}
+{"tag": "single_object", "include": [{"class": "sewing machine", "count": 1}], "prompt": "a photo of a sewing machine"}
+{"tag": "single_object", "include": [{"class": "buckler", "count": 1}], "prompt": "a photo of a buckler"}
+{"tag": "single_object", "include": [{"class": "shoe store", "count": 1}], "prompt": "a photo of a shoe store"}
+{"tag": "single_object", "include": [{"class": "shoji", "count": 1}], "prompt": "a photo of a shoji"}
+{"tag": "single_object", "include": [{"class": "shopping basket", "count": 1}], "prompt": "a photo of a shopping basket"}
+{"tag": "single_object", "include": [{"class": "shopping cart", "count": 1}], "prompt": "a photo of a shopping cart"}
+{"tag": "single_object", "include": [{"class": "shovel", "count": 1}], "prompt": "a photo of a shovel"}
+{"tag": "single_object", "include": [{"class": "shower cap", "count": 1}], "prompt": "a photo of a shower cap"}
+{"tag": "single_object", "include": [{"class": "shower curtain", "count": 1}], "prompt": "a photo of a shower curtain"}
+{"tag": "single_object", "include": [{"class": "ski", "count": 1}], "prompt": "a photo of a ski"}
+{"tag": "single_object", "include": [{"class": "ski mask", "count": 1}], "prompt": "a photo of a ski mask"}
+{"tag": "single_object", "include": [{"class": "sleeping bag", "count": 1}], "prompt": "a photo of a sleeping bag"}
+{"tag": "single_object", "include": [{"class": "slide rule", "count": 1}], "prompt": "a photo of a slide rule"}
+{"tag": "single_object", "include": [{"class": "sliding door", "count": 1}], "prompt": "a photo of a sliding door"}
+{"tag": "single_object", "include": [{"class": "one-armed bandit", "count": 1}], "prompt": "a photo of a one-armed bandit"}
+{"tag": "single_object", "include": [{"class": "snorkel", "count": 1}], "prompt": "a photo of a snorkel"}
+{"tag": "single_object", "include": [{"class": "snowmobile", "count": 1}], "prompt": "a photo of a snowmobile"}
+{"tag": "single_object", "include": [{"class": "snowplough", "count": 1}], "prompt": "a photo of a snowplough"}
+{"tag": "single_object", "include": [{"class": "soap dispenser", "count": 1}], "prompt": "a photo of a soap dispenser"}
+{"tag": "single_object", "include": [{"class": "soccer ball", "count": 1}], "prompt": "a photo of a soccer ball"}
+{"tag": "single_object", "include": [{"class": "sock", "count": 1}], "prompt": "a photo of a sock"}
+{"tag": "single_object", "include": [{"class": "solar dish", "count": 1}], "prompt": "a photo of a solar dish"}
+{"tag": "single_object", "include": [{"class": "sombrero", "count": 1}], "prompt": "a photo of a sombrero"}
+{"tag": "single_object", "include": [{"class": "soup bowl", "count": 1}], "prompt": "a photo of a soup bowl"}
+{"tag": "single_object", "include": [{"class": "space bar", "count": 1}], "prompt": "a photo of a space bar"}
+{"tag": "single_object", "include": [{"class": "space heater", "count": 1}], "prompt": "a photo of a space heater"}
+{"tag": "single_object", "include": [{"class": "space shuttle", "count": 1}], "prompt": "a photo of a space shuttle"}
+{"tag": "single_object", "include": [{"class": "spatula", "count": 1}], "prompt": "a photo of a spatula"}
+{"tag": "single_object", "include": [{"class": "speedboat", "count": 1}], "prompt": "a photo of a speedboat"}
+{"tag": "single_object", "include": [{"class": "spindle", "count": 1}], "prompt": "a photo of a spindle"}
+{"tag": "single_object", "include": [{"class": "sports car", "count": 1}], "prompt": "a photo of a sports car"}
+{"tag": "single_object", "include": [{"class": "spot", "count": 1}], "prompt": "a photo of a spot"}
+{"tag": "single_object", "include": [{"class": "stage", "count": 1}], "prompt": "a photo of a stage"}
+{"tag": "single_object", "include": [{"class": "steam locomotive", "count": 1}], "prompt": "a photo of a steam locomotive"}
+{"tag": "single_object", "include": [{"class": "steel arch bridge", "count": 1}], "prompt": "a photo of a steel arch bridge"}
+{"tag": "single_object", "include": [{"class": "steel drum", "count": 1}], "prompt": "a photo of a steel drum"}
+{"tag": "single_object", "include": [{"class": "stethoscope", "count": 1}], "prompt": "a photo of a stethoscope"}
+{"tag": "single_object", "include": [{"class": "stole", "count": 1}], "prompt": "a photo of a stole"}
+{"tag": "single_object", "include": [{"class": "stone wall", "count": 1}], "prompt": "a photo of a stone wall"}
+{"tag": "single_object", "include": [{"class": "stopwatch", "count": 1}], "prompt": "a photo of a stopwatch"}
+{"tag": "single_object", "include": [{"class": "stove", "count": 1}], "prompt": "a photo of a stove"}
+{"tag": "single_object", "include": [{"class": "strainer", "count": 1}], "prompt": "a photo of a strainer"}
+{"tag": "single_object", "include": [{"class": "trolley car", "count": 1}], "prompt": "a photo of a trolley car"}
+{"tag": "single_object", "include": [{"class": "stretcher", "count": 1}], "prompt": "a photo of a stretcher"}
+{"tag": "single_object", "include": [{"class": "day bed", "count": 1}], "prompt": "a photo of a day bed"}
+{"tag": "single_object", "include": [{"class": "tope", "count": 1}], "prompt": "a photo of a tope"}
+{"tag": "single_object", "include": [{"class": "pigboat", "count": 1}], "prompt": "a photo of a pigboat"}
+{"tag": "single_object", "include": [{"class": "suit", "count": 1}], "prompt": "a photo of a suit"}
+{"tag": "single_object", "include": [{"class": "sundial", "count": 1}], "prompt": "a photo of a sundial"}
+{"tag": "single_object", "include": [{"class": "sunglass", "count": 1}], "prompt": "a photo of a sunglass"}
+{"tag": "single_object", "include": [{"class": "dark glasses", "count": 1}], "prompt": "a photo of a dark glasses"}
+{"tag": "single_object", "include": [{"class": "sunscreen", "count": 1}], "prompt": "a photo of a sunscreen"}
+{"tag": "single_object", "include": [{"class": "suspension bridge", "count": 1}], "prompt": "a photo of a suspension bridge"}
+{"tag": "single_object", "include": [{"class": "swab", "count": 1}], "prompt": "a photo of a swab"}
+{"tag": "single_object", "include": [{"class": "sweatshirt", "count": 1}], "prompt": "a photo of a sweatshirt"}
+{"tag": "single_object", "include": [{"class": "bathing trunks", "count": 1}], "prompt": "a photo of a bathing trunks"}
+{"tag": "single_object", "include": [{"class": "swing", "count": 1}], "prompt": "a photo of a swing"}
+{"tag": "single_object", "include": [{"class": "electrical switch", "count": 1}], "prompt": "a photo of a electrical switch"}
+{"tag": "single_object", "include": [{"class": "syringe", "count": 1}], "prompt": "a photo of a syringe"}
+{"tag": "single_object", "include": [{"class": "table lamp", "count": 1}], "prompt": "a photo of a table lamp"}
+{"tag": "single_object", "include": [{"class": "army tank", "count": 1}], "prompt": "a photo of a army tank"}
+{"tag": "single_object", "include": [{"class": "tape player", "count": 1}], "prompt": "a photo of a tape player"}
+{"tag": "single_object", "include": [{"class": "teapot", "count": 1}], "prompt": "a photo of a teapot"}
+{"tag": "single_object", "include": [{"class": "teddy", "count": 1}], "prompt": "a photo of a teddy"}
+{"tag": "single_object", "include": [{"class": "television system", "count": 1}], "prompt": "a photo of a television system"}
+{"tag": "single_object", "include": [{"class": "tennis ball", "count": 1}], "prompt": "a photo of a tennis ball"}
+{"tag": "single_object", "include": [{"class": "thatched roof", "count": 1}], "prompt": "a photo of a thatched roof"}
+{"tag": "single_object", "include": [{"class": "theatre curtain", "count": 1}], "prompt": "a photo of a theatre curtain"}
+{"tag": "single_object", "include": [{"class": "thimble", "count": 1}], "prompt": "a photo of a thimble"}
+{"tag": "single_object", "include": [{"class": "thrasher", "count": 1}], "prompt": "a photo of a thrasher"}
+{"tag": "single_object", "include": [{"class": "throne", "count": 1}], "prompt": "a photo of a throne"}
+{"tag": "single_object", "include": [{"class": "tile roof", "count": 1}], "prompt": "a photo of a tile roof"}
+{"tag": "single_object", "include": [{"class": "toaster", "count": 1}], "prompt": "a photo of a toaster"}
+{"tag": "single_object", "include": [{"class": "tobacconist", "count": 1}], "prompt": "a photo of a tobacconist"}
+{"tag": "single_object", "include": [{"class": "toilet seat", "count": 1}], "prompt": "a photo of a toilet seat"}
+{"tag": "single_object", "include": [{"class": "torch", "count": 1}], "prompt": "a photo of a torch"}
+{"tag": "single_object", "include": [{"class": "totem pole", "count": 1}], "prompt": "a photo of a totem pole"}
+{"tag": "single_object", "include": [{"class": "tow truck", "count": 1}], "prompt": "a photo of a tow truck"}
+{"tag": "single_object", "include": [{"class": "toyshop", "count": 1}], "prompt": "a photo of a toyshop"}
+{"tag": "single_object", "include": [{"class": "tractor", "count": 1}], "prompt": "a photo of a tractor"}
+{"tag": "single_object", "include": [{"class": "rig", "count": 1}], "prompt": "a photo of a rig"}
+{"tag": "single_object", "include": [{"class": "tray", "count": 1}], "prompt": "a photo of a tray"}
+{"tag": "single_object", "include": [{"class": "trench coat", "count": 1}], "prompt": "a photo of a trench coat"}
+{"tag": "single_object", "include": [{"class": "trike", "count": 1}], "prompt": "a photo of a trike"}
+{"tag": "single_object", "include": [{"class": "trimaran", "count": 1}], "prompt": "a photo of a trimaran"}
+{"tag": "single_object", "include": [{"class": "tripod", "count": 1}], "prompt": "a photo of a tripod"}
+{"tag": "single_object", "include": [{"class": "triumphal arch", "count": 1}], "prompt": "a photo of a triumphal arch"}
+{"tag": "single_object", "include": [{"class": "trolleybus", "count": 1}], "prompt": "a photo of a trolleybus"}
+{"tag": "single_object", "include": [{"class": "trombone", "count": 1}], "prompt": "a photo of a trombone"}
+{"tag": "single_object", "include": [{"class": "tub", "count": 1}], "prompt": "a photo of a tub"}
+{"tag": "single_object", "include": [{"class": "turnstile", "count": 1}], "prompt": "a photo of a turnstile"}
+{"tag": "single_object", "include": [{"class": "typewriter keyboard", "count": 1}], "prompt": "a photo of a typewriter keyboard"}
+{"tag": "single_object", "include": [{"class": "umbrella", "count": 1}], "prompt": "a photo of a umbrella"}
+{"tag": "single_object", "include": [{"class": "monocycle", "count": 1}], "prompt": "a photo of a monocycle"}
+{"tag": "single_object", "include": [{"class": "upright", "count": 1}], "prompt": "a photo of a upright"}
+{"tag": "single_object", "include": [{"class": "vacuum", "count": 1}], "prompt": "a photo of a vacuum"}
+{"tag": "single_object", "include": [{"class": "vase", "count": 1}], "prompt": "a photo of a vase"}
+{"tag": "single_object", "include": [{"class": "vault", "count": 1}], "prompt": "a photo of a vault"}
+{"tag": "single_object", "include": [{"class": "velvet", "count": 1}], "prompt": "a photo of a velvet"}
+{"tag": "single_object", "include": [{"class": "vending machine", "count": 1}], "prompt": "a photo of a vending machine"}
+{"tag": "single_object", "include": [{"class": "vestment", "count": 1}], "prompt": "a photo of a vestment"}
+{"tag": "single_object", "include": [{"class": "viaduct", "count": 1}], "prompt": "a photo of a viaduct"}
+{"tag": "single_object", "include": [{"class": "fiddle", "count": 1}], "prompt": "a photo of a fiddle"}
+{"tag": "single_object", "include": [{"class": "volleyball", "count": 1}], "prompt": "a photo of a volleyball"}
+{"tag": "single_object", "include": [{"class": "waffle iron", "count": 1}], "prompt": "a photo of a waffle iron"}
+{"tag": "single_object", "include": [{"class": "wall clock", "count": 1}], "prompt": "a photo of a wall clock"}
+{"tag": "single_object", "include": [{"class": "wallet", "count": 1}], "prompt": "a photo of a wallet"}
+{"tag": "single_object", "include": [{"class": "wardrobe", "count": 1}], "prompt": "a photo of a wardrobe"}
+{"tag": "single_object", "include": [{"class": "military plane", "count": 1}], "prompt": "a photo of a military plane"}
+{"tag": "single_object", "include": [{"class": "handbasin", "count": 1}], "prompt": "a photo of a handbasin"}
+{"tag": "single_object", "include": [{"class": "washing machine", "count": 1}], "prompt": "a photo of a washing machine"}
+{"tag": "single_object", "include": [{"class": "water bottle", "count": 1}], "prompt": "a photo of a water bottle"}
+{"tag": "single_object", "include": [{"class": "water jug", "count": 1}], "prompt": "a photo of a water jug"}
+{"tag": "single_object", "include": [{"class": "water tower", "count": 1}], "prompt": "a photo of a water tower"}
+{"tag": "single_object", "include": [{"class": "whiskey jug", "count": 1}], "prompt": "a photo of a whiskey jug"}
+{"tag": "single_object", "include": [{"class": "whistle", "count": 1}], "prompt": "a photo of a whistle"}
+{"tag": "single_object", "include": [{"class": "wig", "count": 1}], "prompt": "a photo of a wig"}
+{"tag": "single_object", "include": [{"class": "window screen", "count": 1}], "prompt": "a photo of a window screen"}
+{"tag": "single_object", "include": [{"class": "window shade", "count": 1}], "prompt": "a photo of a window shade"}
+{"tag": "single_object", "include": [{"class": "Windsor tie", "count": 1}], "prompt": "a photo of a Windsor tie"}
+{"tag": "single_object", "include": [{"class": "wine bottle", "count": 1}], "prompt": "a photo of a wine bottle"}
+{"tag": "single_object", "include": [{"class": "wing", "count": 1}], "prompt": "a photo of a wing"}
+{"tag": "single_object", "include": [{"class": "wok", "count": 1}], "prompt": "a photo of a wok"}
+{"tag": "single_object", "include": [{"class": "wooden spoon", "count": 1}], "prompt": "a photo of a wooden spoon"}
+{"tag": "single_object", "include": [{"class": "woolen", "count": 1}], "prompt": "a photo of a woolen"}
+{"tag": "single_object", "include": [{"class": "snake fence", "count": 1}], "prompt": "a photo of a snake fence"}
+{"tag": "single_object", "include": [{"class": "wreck", "count": 1}], "prompt": "a photo of a wreck"}
+{"tag": "single_object", "include": [{"class": "yawl", "count": 1}], "prompt": "a photo of a yawl"}
+{"tag": "single_object", "include": [{"class": "yurt", "count": 1}], "prompt": "a photo of a yurt"}
+{"tag": "single_object", "include": [{"class": "website", "count": 1}], "prompt": "a photo of a website"}
+{"tag": "single_object", "include": [{"class": "comic book", "count": 1}], "prompt": "a photo of a comic book"}
+{"tag": "single_object", "include": [{"class": "crossword puzzle", "count": 1}], "prompt": "a photo of a crossword puzzle"}
+{"tag": "single_object", "include": [{"class": "street sign", "count": 1}], "prompt": "a photo of a street sign"}
+{"tag": "single_object", "include": [{"class": "stoplight", "count": 1}], "prompt": "a photo of a stoplight"}
+{"tag": "single_object", "include": [{"class": "dust wrapper", "count": 1}], "prompt": "a photo of a dust wrapper"}
+{"tag": "single_object", "include": [{"class": "menu", "count": 1}], "prompt": "a photo of a menu"}
+{"tag": "single_object", "include": [{"class": "plate", "count": 1}], "prompt": "a photo of a plate"}
+{"tag": "single_object", "include": [{"class": "guacamole", "count": 1}], "prompt": "a photo of a guacamole"}
+{"tag": "single_object", "include": [{"class": "consomme", "count": 1}], "prompt": "a photo of a consomme"}
+{"tag": "single_object", "include": [{"class": "hotpot", "count": 1}], "prompt": "a photo of a hotpot"}
+{"tag": "single_object", "include": [{"class": "trifle", "count": 1}], "prompt": "a photo of a trifle"}
+{"tag": "single_object", "include": [{"class": "icecream", "count": 1}], "prompt": "a photo of a icecream"}
+{"tag": "single_object", "include": [{"class": "lollipop", "count": 1}], "prompt": "a photo of a lollipop"}
+{"tag": "single_object", "include": [{"class": "French loaf", "count": 1}], "prompt": "a photo of a French loaf"}
+{"tag": "single_object", "include": [{"class": "beigel", "count": 1}], "prompt": "a photo of a beigel"}
+{"tag": "single_object", "include": [{"class": "pretzel", "count": 1}], "prompt": "a photo of a pretzel"}
+{"tag": "single_object", "include": [{"class": "cheeseburger", "count": 1}], "prompt": "a photo of a cheeseburger"}
+{"tag": "single_object", "include": [{"class": "hotdog", "count": 1}], "prompt": "a photo of a hotdog"}
+{"tag": "single_object", "include": [{"class": "mashed potato", "count": 1}], "prompt": "a photo of a mashed potato"}
+{"tag": "single_object", "include": [{"class": "head cabbage", "count": 1}], "prompt": "a photo of a head cabbage"}
+{"tag": "single_object", "include": [{"class": "broccoli", "count": 1}], "prompt": "a photo of a broccoli"}
+{"tag": "single_object", "include": [{"class": "cauliflower", "count": 1}], "prompt": "a photo of a cauliflower"}
+{"tag": "single_object", "include": [{"class": "courgette", "count": 1}], "prompt": "a photo of a courgette"}
+{"tag": "single_object", "include": [{"class": "spaghetti squash", "count": 1}], "prompt": "a photo of a spaghetti squash"}
+{"tag": "single_object", "include": [{"class": "acorn squash", "count": 1}], "prompt": "a photo of a acorn squash"}
+{"tag": "single_object", "include": [{"class": "butternut squash", "count": 1}], "prompt": "a photo of a butternut squash"}
+{"tag": "single_object", "include": [{"class": "cuke", "count": 1}], "prompt": "a photo of a cuke"}
+{"tag": "single_object", "include": [{"class": "globe artichoke", "count": 1}], "prompt": "a photo of a globe artichoke"}
+{"tag": "single_object", "include": [{"class": "bell pepper", "count": 1}], "prompt": "a photo of a bell pepper"}
+{"tag": "single_object", "include": [{"class": "cardoon", "count": 1}], "prompt": "a photo of a cardoon"}
+{"tag": "single_object", "include": [{"class": "mushroom", "count": 1}], "prompt": "a photo of a mushroom"}
+{"tag": "single_object", "include": [{"class": "Granny Smith", "count": 1}], "prompt": "a photo of a Granny Smith"}
+{"tag": "single_object", "include": [{"class": "strawberry", "count": 1}], "prompt": "a photo of a strawberry"}
+{"tag": "single_object", "include": [{"class": "orange", "count": 1}], "prompt": "a photo of a orange"}
+{"tag": "single_object", "include": [{"class": "lemon", "count": 1}], "prompt": "a photo of a lemon"}
+{"tag": "single_object", "include": [{"class": "fig", "count": 1}], "prompt": "a photo of a fig"}
+{"tag": "single_object", "include": [{"class": "ananas", "count": 1}], "prompt": "a photo of a ananas"}
+{"tag": "single_object", "include": [{"class": "banana", "count": 1}], "prompt": "a photo of a banana"}
+{"tag": "single_object", "include": [{"class": "jack", "count": 1}], "prompt": "a photo of a jack"}
+{"tag": "single_object", "include": [{"class": "custard apple", "count": 1}], "prompt": "a photo of a custard apple"}
+{"tag": "single_object", "include": [{"class": "pomegranate", "count": 1}], "prompt": "a photo of a pomegranate"}
+{"tag": "single_object", "include": [{"class": "hay", "count": 1}], "prompt": "a photo of a hay"}
+{"tag": "single_object", "include": [{"class": "carbonara", "count": 1}], "prompt": "a photo of a carbonara"}
+{"tag": "single_object", "include": [{"class": "chocolate syrup", "count": 1}], "prompt": "a photo of a chocolate syrup"}
+{"tag": "single_object", "include": [{"class": "dough", "count": 1}], "prompt": "a photo of a dough"}
+{"tag": "single_object", "include": [{"class": "meat loaf", "count": 1}], "prompt": "a photo of a meat loaf"}
+{"tag": "single_object", "include": [{"class": "pizza pie", "count": 1}], "prompt": "a photo of a pizza pie"}
+{"tag": "single_object", "include": [{"class": "potpie", "count": 1}], "prompt": "a photo of a potpie"}
+{"tag": "single_object", "include": [{"class": "burrito", "count": 1}], "prompt": "a photo of a burrito"}
+{"tag": "single_object", "include": [{"class": "red wine", "count": 1}], "prompt": "a photo of a red wine"}
+{"tag": "single_object", "include": [{"class": "espresso", "count": 1}], "prompt": "a photo of a espresso"}
+{"tag": "single_object", "include": [{"class": "cup", "count": 1}], "prompt": "a photo of a cup"}
+{"tag": "single_object", "include": [{"class": "eggnog", "count": 1}], "prompt": "a photo of a eggnog"}
+{"tag": "single_object", "include": [{"class": "alp", "count": 1}], "prompt": "a photo of a alp"}
+{"tag": "single_object", "include": [{"class": "bubble", "count": 1}], "prompt": "a photo of a bubble"}
+{"tag": "single_object", "include": [{"class": "cliff", "count": 1}], "prompt": "a photo of a cliff"}
+{"tag": "single_object", "include": [{"class": "coral reef", "count": 1}], "prompt": "a photo of a coral reef"}
+{"tag": "single_object", "include": [{"class": "geyser", "count": 1}], "prompt": "a photo of a geyser"}
+{"tag": "single_object", "include": [{"class": "lakeshore", "count": 1}], "prompt": "a photo of a lakeshore"}
+{"tag": "single_object", "include": [{"class": "headland", "count": 1}], "prompt": "a photo of a headland"}
+{"tag": "single_object", "include": [{"class": "sandbar", "count": 1}], "prompt": "a photo of a sandbar"}
+{"tag": "single_object", "include": [{"class": "coast", "count": 1}], "prompt": "a photo of a coast"}
+{"tag": "single_object", "include": [{"class": "vale", "count": 1}], "prompt": "a photo of a vale"}
+{"tag": "single_object", "include": [{"class": "volcano", "count": 1}], "prompt": "a photo of a volcano"}
+{"tag": "single_object", "include": [{"class": "ballplayer", "count": 1}], "prompt": "a photo of a ballplayer"}
+{"tag": "single_object", "include": [{"class": "bridegroom", "count": 1}], "prompt": "a photo of a bridegroom"}
+{"tag": "single_object", "include": [{"class": "scuba diver", "count": 1}], "prompt": "a photo of a scuba diver"}
+{"tag": "single_object", "include": [{"class": "rapeseed", "count": 1}], "prompt": "a photo of a rapeseed"}
+{"tag": "single_object", "include": [{"class": "daisy", "count": 1}], "prompt": "a photo of a daisy"}
+{"tag": "single_object", "include": [{"class": "yellow lady", "count": 1}], "prompt": "a photo of a yellow lady"}
+{"tag": "single_object", "include": [{"class": "corn", "count": 1}], "prompt": "a photo of a corn"}
+{"tag": "single_object", "include": [{"class": "acorn", "count": 1}], "prompt": "a photo of a acorn"}
+{"tag": "single_object", "include": [{"class": "hip", "count": 1}], "prompt": "a photo of a hip"}
+{"tag": "single_object", "include": [{"class": "buckeye", "count": 1}], "prompt": "a photo of a buckeye"}
+{"tag": "single_object", "include": [{"class": "coral fungus", "count": 1}], "prompt": "a photo of a coral fungus"}
+{"tag": "single_object", "include": [{"class": "agaric", "count": 1}], "prompt": "a photo of a agaric"}
+{"tag": "single_object", "include": [{"class": "gyromitra", "count": 1}], "prompt": "a photo of a gyromitra"}
+{"tag": "single_object", "include": [{"class": "carrion fungus", "count": 1}], "prompt": "a photo of a carrion fungus"}
+{"tag": "single_object", "include": [{"class": "earthstar", "count": 1}], "prompt": "a photo of a earthstar"}
+{"tag": "single_object", "include": [{"class": "hen-of-the-woods", "count": 1}], "prompt": "a photo of a hen-of-the-woods"}
+{"tag": "single_object", "include": [{"class": "bolete", "count": 1}], "prompt": "a photo of a bolete"}
+{"tag": "single_object", "include": [{"class": "spike", "count": 1}], "prompt": "a photo of a spike"}
+{"tag": "single_object", "include": [{"class": "toilet paper", "count": 1}], "prompt": "a photo of a toilet paper"}
