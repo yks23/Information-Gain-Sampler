@@ -4,6 +4,33 @@
 
 A unified decoding framework for Masked Diffusion Models (MDMs) that combines trajectory planning with information-gain maximization. This repository provides an implementation of the **Info-Gain Sampler**, a flexible decoding strategy that supports multiple heuristic functions and can adapt to various generation tasks.
 
+## Table of Contents
+
+- [Motivation](#motivation)
+  - [The Problem with Greedy Sampling](#the-problem-with-greedy-sampling)
+  - [Case Studies](#case-studies)
+  - [Key Observations](#key-observations)
+- [Info-Gain Sampler](#info-gain-sampler)
+  - [Objective Function](#objective-function)
+  - [Implementation](#implementation)
+  - [Efficient Implementation](#efficient-implementation)
+- [Installation](#installation)
+- [Model Preparation](#model-preparation)
+- [Data Preparation](#data-preparation)
+- [Quick Start](#quick-start)
+  - [Task-Specific Scripts](#task-specific-scripts-recommended)
+  - [Unified Script](#unified-script-evalsh)
+  - [Programmatic Usage](#programmatic-usage)
+- [Reproducing Paper Experiments](#reproducing-paper-experiments)
+  - [Experiment Details](#experiment-details)
+  - [Experimental Setup](#experimental-setup)
+  - [Main Results](#main-results)
+  - [Ablation Studies](#ablation-studies)
+- [License](#license)
+- [Citation](#citation)
+
+---
+
 ## Motivation
 
 Masked Diffusion Models (MDMs) have emerged as a powerful alternative to autoregressive models (ARMs) for discrete sequence generation. By leveraging bidirectional attention, MDMs break free from strict left-to-right generation, granting unprecedented flexibility in decoding paths. This flexibility unlocks superior performance in tasks requiring bidirectional attention, such as code infilling, biological sequence design, and long-horizon planning tasks.
@@ -50,6 +77,61 @@ Greedy samplers tend to decode the answer token prematurely, making a commitment
 
 These observations motivate the Info-Gain Sampler, which balances immediate certainty with information gain to prioritize globally informative decisions and yield more robust decoding trajectories.
 
+## Info-Gain Sampler
+
+The Info-Gain Sampler leverages the bidirectional nature of MDMs to balance the immediate uncertainty cost of a decoding decision against its expected information gain over the remaining masked positions.
+
+### Objective Function
+
+We first define **state uncertainty** as the average marginal entropy over the masked positions in state $z_t$:
+
+$$\mathcal{H}(z_t) = \frac{1}{|\mathcal{M}_t|} \sum_{\ell \in \mathcal{M}_t} H^{(\ell)}(z_t)$$
+
+The state uncertainty quantifies the information remaining to be resolved by the model and can be computed efficiently via a single forward pass.
+
+The **information gain** of action $a_t$ is defined as the reduction in state uncertainty (equivalently, the decrease in marginal entropy over the remaining masked positions) it induces:
+
+$$\text{IG}(a_t; z_t) := \mathcal{H}(z_t) - \mathcal{H}(z_{t-1})$$
+
+where $z_{t-1} = \text{Apply}(z_t, a_t)$ denotes the state obtained after executing action $a_t$ from state $z_t$.
+
+The total impact of a decoding action $a_t$ is decomposed into two components:
+
+1. **Immediate Cost**: The uncertainty of the tokens being decoded in the current step, measured by the sum of marginal entropy over the chosen positions $C(a_t \mid z_t)$.
+
+2. **Information Gain**: The reduction in the uncertainty over the remaining mask positions, quantified by $\text{IG}(a_t; z_t)$.
+
+To balance these two components, we define the Info-Gain Sampler objective as:
+
+$$J_{IG}(a_t \mid z_t) = \underbrace{\text{IG}(a_t; z_t)}_{\text{Information Gain}} - \underbrace{C(a_t \mid z_t)}_{\text{Immediate Cost}}$$
+
+### Implementation
+
+At each decoding step, Info-Gain Sampler follows a **three-step cycle** to determine and execute the most informative action:
+
+1. **Sampling**: We sample a candidate set $\mathcal{C} = \{a_t^{(1)}, \dots, a_t^{(N)}\}$ of diverse actions using the *Action Sampler*. This explores the combinatorially large action space by proposing multiple potential actions.
+
+2. **Evaluation**: We compute the objective $J_{IG}(a_t \mid z_t)$ for all candidates $a_t$ in the set $\mathcal{C}$. Crucially, this evaluation is highly efficient as it requires only a single batched forward pass to estimate the future information gain for all candidates simultaneously.
+
+3. **Transition**: The optimal action is selected as $a_t^* = \arg\max_{a \in \mathcal{C}} J_{IG}(a \mid z_t)$. We then execute this action to transition to the next state $z_{t-1}^*$, repeating the cycle until all masked positions are filled.
+
+**Action Sampler**: We explore the large action space by generating a candidate set $\mathcal{C}$ of size $N$ through a two-stage sampling process:
+- **Token Sampling**: Drawing tokens $v_\ell$ from $p_\theta$ with token temperature $\tau_{\text{token}}$
+- **Position Sampling**: Selecting positions $\ell \in \mathcal{M}_t$ using a softmax over certainty scores $\phi(\ell, z_t)$ with position temperature $\tau_{\text{pos}}$
+
+Each candidate action $a_t = \{(\ell, v_\ell)\}$ is formed by pairing these samples, providing a diverse and high-quality set for evaluation.
+
+### Efficient Implementation
+
+To ensure efficiency, candidate evaluations are performed in parallel within a single batched forward pass. We further optimize the sampler by:
+
+- **Block-wise computation**: Restricting information-gain computation to the current active block $\mathcal{B}$, which enables effective KV caching
+- **High-confidence bypass**: If the maximum token probability exceeds a threshold $\gamma$, the corresponding positions are directly fixed into the action set. This hybrid approach significantly reduces inference latency while preserving planning quality
+
+Because Info-Gain effectively reduces uncertainty during decoding, the high-confidence bypass is triggered more frequently, making the mechanism exceptionally efficient.
+
+---
+
 ## Installation
 
 ### Requirements
@@ -73,97 +155,6 @@ pip install -r requirements.txt
 # Optional: For multimodal evaluation (FID, GenEval)
 pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
 ```
-
-
-## Data Preparation
-
-### Baseline Files
-
-Baseline frequency files (`data/baseline/reference_corpus*.json`) are used for PC-Sampler heuristic. To generate them:
-
-```bash
-# Generate baseline from a reference corpus
-python utils/calculate_p_baseline.py \
-    --input_file /path/to/reference_corpus.jsonl \
-    --output_file data/baseline/reference_corpus.json \
-    --model_name GSAI-ML/LLaDA-8B-Instruct  # or your model name
-```
-
-**What the script does:**
-1. Loads the reference corpus (JSONL format)
-2. Tokenizes all text using the specified model's tokenizer
-3. Calculates token frequency distribution across the corpus
-4. Saves the baseline distribution as a JSON file with format:
-   ```json
-   {
-     "num_token": <total_tokens>,
-     "p_baseline_dict": {<token_id>: <frequency>, ...}
-   }
-   ```
-
-**When to generate separate baselines:**
-- Different tokenizers produce different token IDs → Generate separate baselines for Dream and LLaDA models
-- Different corpus domains → Generate domain-specific baselines (e.g., code corpus for code tasks)
-- Different model vocabularies → Each model family needs its own baseline
-
-**Recommended baseline corpus**: Use a large, diverse text corpus (e.g., Wikipedia, Common Crawl subset) that matches your task domain.
-
-### Multimodal Models
-
-For multimodal (text-to-image) evaluation, you need to place the following models in the `model/` directory:
-
-```
-model/
-├── mmada/              # MMaDA text-to-image generation model
-│   ├── config.json
-│   ├── model-*.safetensors
-│   └── tokenizer.json
-└── magvitv2/           # MAGVITv2 VQ model (for image decoding)
-    ├── config.json
-    ├── model-*.safetensors
-    └── ...
-```
-
-### Multimodal Data
-
-For multimodal evaluation, you need the following files:
-
-1. **GenEval prompts**: 
-   - Location: `src/benchmarks/multimodal_tasks/multimodal_eval/prompts/generation_prompts.txt`
-   - Contains: Text prompts for text-to-image generation evaluation
-   - Format: One prompt per line
-   - Metadata: `src/benchmarks/multimodal_tasks/multimodal_eval/prompts/evaluation_metadata.jsonl` (JSONL format with prompt metadata)
-
-2. **ImageNet reference statistics** (for FID evaluation):
-   - Location: `data/VIRTUAL_imagenet512.npz`
-   - Contains: Pre-computed InceptionV3 features for ImageNet 512×512 images
-   - Purpose: Reference distribution for FID calculation
-   - **Download**:
-     ```bash
-     # Download to data/ directory
-     wget https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/512/VIRTUAL_imagenet512.npz \
-          -O data/VIRTUAL_imagenet512.npz
-     ```
-   - **Direct URL**: `https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/512/VIRTUAL_imagenet512.npz`
-   - File size: ~200MB (compressed)
-
-3. **Mask2Former model** (for GenEval object detection):
-   - Download location: `models/mask2former/` (relative to project root)
-   - Model file: `mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth`
-   - **Download**: 
-     ```bash
-     # Option 1: Use mmdetection's model zoo (recommended)
-     mkdir -p models/mask2former
-     wget https://download.openmmlab.com/mmdetection/v2.0/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth \
-          -O models/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth
-     
-     # Option 2: Use download script (if available in MMaDA project)
-     # cd /path/to/MMaDA/geneval/evaluation
-     # bash download_models.sh ../../models/mask2former/
-     ```
-   - **Direct URL**: `https://download.openmmlab.com/mmdetection/v2.0/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth`
-   - File size: ~200MB
-   - Purpose: Object detection and segmentation for GenEval evaluation
 
 ## Model Preparation
 
@@ -212,7 +203,6 @@ adapter = get_model_adapter("Gen-Verse/TraDo-8B-Instruct", device="cuda:0")
 adapter = get_model_adapter("GSAI-ML/LLaDA-8B-Instruct", device="cuda:0")
 adapter = get_model_adapter("Dream-org/Dream-v0-Instruct-7B", device="cuda:0")
 adapter = get_model_adapter("JetLM/SDAR-8B-Chat", device="cuda:0")
-adapter = get_model_adapter("Dream-org/Dream-v0-Instruct-7B", device="cuda:0")
 adapter = get_model_adapter("Gen-Verse/MMaDA-8B-MixCoT", device="cuda:0")
 ```
 
@@ -265,6 +255,9 @@ huggingface-cli download GSAI-ML/LLaDA-8B-Instruct --local-dir ./model/llada
 # Dream
 huggingface-cli download Dream-org/Dream-v0-Instruct-7B --local-dir ./model/dream
 
+# SDAR
+huggingface-cli download JetLM/SDAR-8B-Chat --local-dir ./model/sdar
+
 # MMaDA (for multimodal tasks - MixCoT version required)
 huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
 ```
@@ -279,13 +272,6 @@ For text-to-image evaluation with MMaDA, you need two models:
      ```bash
      # Using huggingface-cli (recommended)
      huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
-     
-     # Or place in model/ directory
-     huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
-     
-     # Or using Python
-     from huggingface_hub import snapshot_download
-     snapshot_download(repo_id="Gen-Verse/MMaDA-8B-MixCoT", local_dir="./model/mmada")
      ```
    - Local path: `./model/mmada/` (preferred) or `./mmada-mix/` (fallback)
    - Purpose: Generates images from text prompts
@@ -298,13 +284,6 @@ For text-to-image evaluation with MMaDA, you need two models:
      ```bash
      # Using huggingface-cli (recommended)
      huggingface-cli download showlab/magvitv2 --local-dir ./model/magvitv2
-     
-     # Or place in model/ directory
-     huggingface-cli download showlab/magvitv2 --local-dir ./model/magvitv2
-     
-     # Or using Python
-     from huggingface_hub import snapshot_download
-     snapshot_download(repo_id="showlab/magvitv2", local_dir="./model/magvitv2")
      ```
    - Local path: `./model/magvitv2/` (preferred) or `./magvitv2/` (fallback)
    - Purpose: Encodes/decodes images to/from discrete tokens
@@ -322,6 +301,184 @@ For text-to-image evaluation with MMaDA, you need two models:
 - **Note**: Models will be automatically downloaded on first use if using HuggingFace paths directly
 
 See [src/benchmarks/multimodal_tasks/multimodal_eval/README.md](src/benchmarks/multimodal_tasks/multimodal_eval/README.md) for detailed setup and configuration instructions.
+
+## Data Preparation
+
+### Baseline Files
+
+Baseline frequency files (`data/baseline/reference_corpus*.json`) are used for PC-Sampler heuristic. To generate them:
+
+```bash
+# Generate baseline from a reference corpus
+python utils/calculate_p_baseline.py \
+    --input_file /path/to/reference_corpus.jsonl \
+    --output_file data/baseline/reference_corpus.json \
+    --model_name GSAI-ML/LLaDA-8B-Instruct  # or your model name
+```
+
+**What the script does:**
+1. Loads the reference corpus (JSONL format)
+2. Tokenizes all text using the specified model's tokenizer
+3. Calculates token frequency distribution across the corpus
+4. Saves the baseline distribution as a JSON file with format:
+   ```json
+   {
+     "num_token": <total_tokens>,
+     "p_baseline_dict": {<token_id>: <frequency>, ...}
+   }
+   ```
+
+**When to generate separate baselines:**
+- Different tokenizers produce different token IDs → Generate separate baselines for Dream and LLaDA models
+- Different corpus domains → Generate domain-specific baselines (e.g., code corpus for code tasks)
+- Different model vocabularies → Each model family needs its own baseline
+
+**Recommended baseline corpus**: Use a large, diverse text corpus (e.g., Wikipedia, Common Crawl subset) that matches your task domain.
+
+### Multimodal Data
+
+For multimodal evaluation, you need the following files:
+
+1. **GenEval prompts**: 
+   - Location: `src/benchmarks/multimodal_tasks/multimodal_eval/prompts/generation_prompts.txt`
+   - Contains: Text prompts for text-to-image generation evaluation
+   - Format: One prompt per line
+   - Metadata: `src/benchmarks/multimodal_tasks/multimodal_eval/prompts/evaluation_metadata.jsonl` (JSONL format with prompt metadata)
+
+2. **ImageNet reference statistics** (for FID evaluation):
+   - Location: `data/VIRTUAL_imagenet512.npz`
+   - Contains: Pre-computed InceptionV3 features for ImageNet 512×512 images
+   - Purpose: Reference distribution for FID calculation
+   - **Download**:
+     ```bash
+     # Download to data/ directory
+     wget https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/512/VIRTUAL_imagenet512.npz \
+          -O data/VIRTUAL_imagenet512.npz
+     ```
+   - **Direct URL**: `https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/512/VIRTUAL_imagenet512.npz`
+   - File size: ~200MB (compressed)
+
+3. **Mask2Former model** (for GenEval object detection):
+   - Download location: `models/mask2former/` (relative to project root)
+   - Model file: `mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth`
+   - **Download**: 
+     ```bash
+     # Option 1: Use mmdetection's model zoo (recommended)
+     mkdir -p models/mask2former
+     wget https://download.openmmlab.com/mmdetection/v2.0/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth \
+          -O models/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth
+     ```
+   - **Direct URL**: `https://download.openmmlab.com/mmdetection/v2.0/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth`
+   - File size: ~200MB
+   - Purpose: Object detection and segmentation for GenEval evaluation
+
+## Quick Start
+
+### Task-Specific Scripts (Recommended)
+
+We provide specialized scripts for different task types and algorithms:
+
+**Reasoning Tasks** (code, math, logic):
+```bash
+cd scripts
+python eval_reasoning.py --task humaneval --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain
+python eval_reasoning.py --task math500 --model_name /model/llada --mode pc_sampler
+```
+
+**Creative Writing Task**:
+```bash
+cd scripts
+python eval_writing.py --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain --gen_length 512
+```
+
+**Info-Gain Algorithm** (all tasks):
+```bash
+cd scripts
+python eval_info_gain.py --task humaneval --model_name GSAI-ML/LLaDA-8B-Instruct --candidate_number 8
+```
+
+**Baseline Algorithms** (original, pc_sampler, eb_sampler, etc.):
+```bash
+cd scripts
+python eval_baselines.py --task humaneval --model_name /model/llada --mode pc_sampler
+```
+
+**Multimodal Tasks** (text-to-image):
+```bash
+cd scripts
+python eval_multimodal.py --pipeline all  # Full pipeline
+python eval_multimodal.py --pipeline generate  # Only generation
+python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval  # Only evaluation
+```
+
+### Unified Script (Eval.sh)
+
+Alternatively, you can use the unified CLI-parameterised `Eval.sh` script:
+
+```bash
+cd scripts
+
+# LLaDA on HumanEval with Info-Gain Sampler
+bash Eval.sh --task humaneval --model GSAI-ML/LLaDA-8B-Instruct --mode info-gain \
+    --candidate_number 8 --position_temperature 0.2
+
+# Dream on MATH-500 with PC-Sampler
+bash Eval.sh --task math500 --model /model/dream --mode pc_sampler
+
+# Sudoku with Info-Gain
+bash Eval.sh --task sudoku --model /model/llada --mode info-gain --candidate_number 8
+
+# Countdown without few-shot
+bash Eval.sh --task countdown --model /model/llada --mode info-gain --no_shot
+```
+
+Built-in task defaults (gen_length, steps, block_length, data_path) are applied automatically. Any parameter can be overridden via CLI flags. Run `bash Eval.sh --help` for full usage.
+
+### Programmatic Usage
+
+```python
+from src.models import get_model_adapter
+from src.generators.base import generate
+from src.prompts.model_templates import apply_model_template
+import torch
+
+# Load model (auto-detects Dream / LLaDA / SDAR / AR)
+adapter = get_model_adapter("GSAI-ML/LLaDA-8B-Instruct", device="cuda:0")
+tokenizer = adapter.tokenizer
+model = adapter.model
+
+# Build prompt
+query = "What is 2 + 2?"
+messages = [{"role": "user", "content": query}]
+prompt_str = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
+prompt = tokenizer(prompt_str)['input_ids']
+prompt = torch.tensor(prompt).to("cuda:0").unsqueeze(0)
+
+# Generate with Info-Gain Sampler
+output = generate(
+    model=model,
+    prompt=prompt,
+    steps=256,
+    gen_length=256,
+    block_length=32,
+    baseline_name="../data/baseline/reference_corpus.json",
+    temperature=0.0,
+    candidate_number=8,          # >1 enables Info-Gain mode
+    position_temperature=0.2,    # >0 enables position sampling
+    heuristic='confidence',
+    mask_id=adapter.mask_id,
+    adapter=adapter,              # Model adapter (auto-detects model-specific behavior)
+    use_kv_cache=True,           # Enable KV-cache optimization (optional)
+)
+
+# Decode result
+generated_text = tokenizer.batch_decode(output[:, prompt.shape[1]:], skip_special_tokens=True)[0]
+print(generated_text)
+```
+
+For a complete example, see [src/example_usage.py](src/example_usage.py).
+
+---
 
 ## Reproducing Paper Experiments
 
@@ -432,169 +589,14 @@ We compare Info-Gain Sampler ($B=1$), Info-Gain Beam Search ($B>1$), and Best-of
 
 Info-Gain Sampler maintains stable, low trajectory uncertainty across various temperature scales without sensitive tuning. Importantly, low cumulative entropy reflects more optimized decoding rather than mode collapse, as evidenced by preserved diversity and competitive win rates in creative writing. In contrast, other baselines are highly sensitive to temperature changes, leading to decoding instability.
 
-## Quick Start
-
-### Task-Specific Scripts (Recommended)
-
-We provide specialized scripts for different task types and algorithms:
-
-**Reasoning Tasks** (code, math, logic):
-```bash
-cd scripts
-python eval_reasoning.py --task humaneval --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain
-python eval_reasoning.py --task math500 --model_name /path/to/model --mode pc_sampler
-```
-
-**Creative Writing Task**:
-```bash
-cd scripts
-python eval_writing.py --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain --gen_length 512
-```
-
-**Info-Gain Algorithm** (all tasks):
-```bash
-cd scripts
-python eval_info_gain.py --task humaneval --model_name GSAI-ML/LLaDA-8B-Instruct --candidate_number 8
-```
-
-**Baseline Algorithms** (original, pc_sampler, eb_sampler, etc.):
-```bash
-cd scripts
-python eval_baselines.py --task humaneval --model_name /path/to/model --mode pc_sampler
-```
-
-**Multimodal Tasks** (text-to-image):
-```bash
-cd scripts
-python eval_multimodal.py --pipeline all  # Full pipeline
-python eval_multimodal.py --pipeline generate  # Only generation
-python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval  # Only evaluation
-```
-
-### Unified Script (Eval.sh)
-
-Alternatively, you can use the unified CLI-parameterised `Eval.sh` script:
-
-```bash
-cd scripts
-
-# LLaDA on HumanEval with Info-Gain Sampler
-bash Eval.sh --task humaneval --model GSAI-ML/LLaDA-8B-Instruct --mode info-gain \
-    --candidate_number 8 --position_temperature 0.2
-
-# Dream on MATH-500 with PC-Sampler
-bash Eval.sh --task math500 --model /path/to/Dream-v0-Instruct-7B --mode pc_sampler
-
-# Sudoku with Info-Gain
-bash Eval.sh --task sudoku --model /path/to/model --mode info-gain --candidate_number 8
-
-# Countdown without few-shot
-bash Eval.sh --task countdown --model /path/to/model --mode info-gain --no_shot
-```
-
-Built-in task defaults (gen_length, steps, block_length, data_path) are applied automatically. Any parameter can be overridden via CLI flags. Run `bash Eval.sh --help` for full usage.
-
-### Programmatic Usage
-
-```python
-from src.models import get_model_adapter
-from src.generators import generate, generate_with_info_gain
-from src.prompts import get_task_prompt
-from src.prompts.model_templates import apply_model_template
-import torch
-
-# Load model (auto-detects Dream / LLaDA / SDAR / AR)
-adapter = get_model_adapter("GSAI-ML/LLaDA-8B-Instruct", device="cuda:0")
-tokenizer = adapter.tokenizer
-model = adapter.model
-
-# Build prompt
-input_data = {"problem": "What is 2 + 2?"}
-query = get_task_prompt("math500", input_data, use_shot=True)
-prompt_str = apply_model_template(adapter, tokenizer, query, task="math500")
-prompt = tokenizer(prompt_str)['input_ids']
-prompt = torch.tensor(prompt).to("cuda:0").unsqueeze(0)
-
-# Generate with Info-Gain Sampler
-output = generate(
-    model=model,
-    prompt=prompt,
-    steps=256,
-    gen_length=256,
-    block_length=32,
-    baseline_name="../data/baseline/reference_corpus.json",
-    temperature=0.0,
-    candidate_number=8,          # >1 enables Info-Gain mode
-    position_temperature=0.2,    # >0 enables position sampling
-    heuristic='confidence',
-    mask_id=adapter.mask_id,
-    adapter=adapter,              # Model adapter (auto-detects model-specific behavior)
-    use_kv_cache=True,           # Enable KV-cache optimization (optional)
-)
-
-# Decode result
-generated_text = tokenizer.batch_decode(output[:, prompt.shape[1]:], skip_special_tokens=True)[0]
-print(generated_text)
-```
-
-## Info-Gain Sampler
-
-The Info-Gain Sampler leverages the bidirectional nature of MDMs to balance the immediate uncertainty cost of a decoding decision against its expected information gain over the remaining masked positions.
-
-### Objective Function
-
-We first define **state uncertainty** as the average marginal entropy over the masked positions in state $z_t$:
-
-$$\mathcal{H}(z_t) = \frac{1}{|\mathcal{M}_t|} \sum_{\ell \in \mathcal{M}_t} H^{(\ell)}(z_t)$$
-
-The state uncertainty quantifies the information remaining to be resolved by the model and can be computed efficiently via a single forward pass.
-
-The **information gain** of action $a_t$ is defined as the reduction in state uncertainty (equivalently, the decrease in marginal entropy over the remaining masked positions) it induces:
-
-$$\text{IG}(a_t; z_t) := \mathcal{H}(z_t) - \mathcal{H}(z_{t-1})$$
-
-where $z_{t-1} = \text{Apply}(z_t, a_t)$ denotes the state obtained after executing action $a_t$ from state $z_t$.
-
-The total impact of a decoding action $a_t$ is decomposed into two components:
-
-1. **Immediate Cost**: The uncertainty of the tokens being decoded in the current step, measured by the sum of marginal entropy over the chosen positions $C(a_t \mid z_t)$.
-
-2. **Information Gain**: The reduction in the uncertainty over the remaining mask positions, quantified by $\text{IG}(a_t; z_t)$.
-
-To balance these two components, we define the Info-Gain Sampler objective as:
-
-$$J_{IG}(a_t \mid z_t) = \underbrace{\text{IG}(a_t; z_t)}_{\text{Information Gain}} - \underbrace{C(a_t \mid z_t)}_{\text{Immediate Cost}}$$
-
-### Implementation
-
-At each decoding step, Info-Gain Sampler follows a **three-step cycle** to determine and execute the most informative action:
-
-1. **Sampling**: We sample a candidate set $\mathcal{C} = \{a_t^{(1)}, \dots, a_t^{(N)}\}$ of diverse actions using the *Action Sampler*. This explores the combinatorially large action space by proposing multiple potential actions.
-
-2. **Evaluation**: We compute the objective $J_{IG}(a_t \mid z_t)$ for all candidates $a_t$ in the set $\mathcal{C}$. Crucially, this evaluation is highly efficient as it requires only a single batched forward pass to estimate the future information gain for all candidates simultaneously.
-
-3. **Transition**: The optimal action is selected as $a_t^* = \arg\max_{a \in \mathcal{C}} J_{IG}(a \mid z_t)$. We then execute this action to transition to the next state $z_{t-1}^*$, repeating the cycle until all masked positions are filled.
-
-**Action Sampler**: We explore the large action space by generating a candidate set $\mathcal{C}$ of size $N$ through a two-stage sampling process:
-- **Token Sampling**: Drawing tokens $v_\ell$ from $p_\theta$ with token temperature $\tau_{\text{token}}$
-- **Position Sampling**: Selecting positions $\ell \in \mathcal{M}_t$ using a softmax over certainty scores $\phi(\ell, z_t)$ with position temperature $\tau_{\text{pos}}$
-
-Each candidate action $a_t = \{(\ell, v_\ell)\}$ is formed by pairing these samples, providing a diverse and high-quality set for evaluation.
-
-### Efficient Implementation
-
-To ensure efficiency, candidate evaluations are performed in parallel within a single batched forward pass. We further optimize the sampler by:
-
-- **Block-wise computation**: Restricting information-gain computation to the current active block $\mathcal{B}$, which enables effective KV caching
-- **High-confidence bypass**: If the maximum token probability exceeds a threshold $\gamma$, the corresponding positions are directly fixed into the action set. This hybrid approach significantly reduces inference latency while preserving planning quality
-
-Because Info-Gain effectively reduces uncertainty during decoding, the high-confidence bypass is triggered more frequently, making the mechanism exceptionally efficient.
+---
 
 ## License
 
 MIT License.
 
 ## Citation
+
 If you use this code in your research, please cite:
 
 ```bibtex
