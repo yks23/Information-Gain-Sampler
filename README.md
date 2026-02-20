@@ -4,18 +4,6 @@
 
 A unified decoding framework for Masked Diffusion Models (MDMs) that combines trajectory planning with information-gain maximization. This repository provides an implementation of the **Info-Gain Sampler**, a flexible decoding strategy that supports multiple heuristic functions and can adapt to various generation tasks.
 
-## Overview
-
-The Info-Gain Sampler extends the PC-Sampler framework with information-theoretic action selection. It supports:
-
-- **Multiple heuristic functions**: confidence, PC-value, negative entropy, margin, and uniform sampling
-- **Flexible trajectory control**: position-aware weighting and stochastic position sampling
-- **Unified interface**: all baseline methods (entropy, margin, confidence, etc.) are implemented as special cases of the base `generate` function
-- **Multiple models**: TraDo, LLaDA, Dream, SDAR, MMaDA, and auto-regressive baselines (Mistral, Qwen)
-- **KV-Cache optimization**: Automatic KV-cache support for all MDM models to accelerate generation
-- **Multiple evaluation tasks**: HumanEval, MBPP, MATH-500, GSM8K, GPQA, Sudoku, Countdown, Creativity Writing
-- **Multimodal evaluation**: GenEval for text-to-image generation (FID, CLIP Score, etc.)
-
 ## Motivation
 
 Masked Diffusion Models (MDMs) have emerged as a powerful alternative to autoregressive models (ARMs) for discrete sequence generation. By leveraging bidirectional attention, MDMs break free from strict left-to-right generation, granting unprecedented flexibility in decoding paths. This flexibility unlocks superior performance in tasks requiring bidirectional attention, such as code infilling, biological sequence design, and long-horizon planning tasks.
@@ -73,8 +61,11 @@ These observations motivate the Info-Gain Sampler, which balances immediate cert
 ### Install Dependencies
 
 ```bash
-git clone <repository-url>
-cd Uncode-new
+git clone git@github.com:yks23/Information-Gain-Sampler.git
+cd Information-Gain-Sampler
+
+conda create -n info-gain python=3.10
+conda activate info-gain
 
 # Install core dependencies
 pip install -r requirements.txt
@@ -83,42 +74,8 @@ pip install -r requirements.txt
 pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
 ```
 
-### Verify Installation
-
-```bash
-python -c "import torch; import transformers; print('Installation successful!')"
-```
 
 ## Data Preparation
-
-### Text Task Datasets
-
-All text task datasets should be placed in the `data/` directory:
-
-```
-data/
-├── humaneval.jsonl          # HumanEval dataset
-├── mbpp.jsonl               # MBPP dataset (or sanitized-mbpp.json)
-├── math500.jsonl            # MATH-500 dataset
-├── gsm8k.jsonl              # GSM8K dataset
-├── gpqa.jsonl               # GPQA dataset
-├── countdown.jsonl          # Countdown dataset
-├── sudoku.csv               # Sudoku dataset
-└── baseline/                # Baseline frequency files
-    ├── reference_corpus.json
-    ├── reference_corpus_dream.json
-    └── reference_corpus_llada.json
-```
-
-**Dataset Sources and Download Instructions:**
-- **HumanEval**: Download `HumanEval.jsonl.gz` from [OpenAI's repository](https://github.com/openai/human-eval), extract and place as `data/humaneval.jsonl`
-- **MBPP**: Download from [Google's repository](https://github.com/google-research/google-research/tree/master/mbpp) or use HuggingFace Datasets: `datasets.load_dataset("mbpp")`, save as `data/mbpp.jsonl`
-- **MATH-500**: Extract 500 problems from [MATH dataset](https://github.com/hendrycks/math), save as `data/math500.jsonl`
-- **GSM8K**: Download from [HuggingFace Datasets](https://huggingface.co/datasets/gsm8k): `datasets.load_dataset("gsm8k", "main")`, save as `data/gsm8k.jsonl`
-- **GPQA**: Download from [GPQA repository](https://github.com/idavidrein/gpqa), save as `data/gpqa.jsonl`
-- **Countdown**: Included in repository at `data/countdown.jsonl` (or download from source)
-- **Sudoku**: Included in repository at `data/sudoku.csv` (or download from source)
-- **Creativity Writing**: Included in repository at `src/benchmarks/text_tasks/creativity_writing/data/creativity_writing.jsonl` (200 prompts)
 
 ### Baseline Files
 
@@ -166,13 +123,6 @@ model/
     ├── model-*.safetensors
     └── ...
 ```
-
-**Model Loading Priority**:
-1. `model/mmada/` and `model/magvitv2/` (preferred)
-2. Project root: `mmada-mix/` and `magvitv2/` (fallback)
-3. Config file paths (last resort)
-
-The system will automatically detect and load models from the `model/` directory.
 
 ### Multimodal Data
 
@@ -228,20 +178,6 @@ The framework supports the following models:
 | **Dream** | MDM | `Dream-org/Dream-v0-Instruct-7B` | `/model/dream` |
 | **SDAR** | MDM | `JetLM/SDAR-8B-Chat` | `/model/sdar` |
 | **MMaDA** | MDM | `Gen-Verse/MMaDA-8B-MixCoT` (required) | `/model/mmada` |
-| Mistral | AR | `mistralai/Mistral-7B-Instruct-v0.2` | `/model/mistral` |
-| Qwen | AR | `Qwen/Qwen-7B-Chat` | `/model/qwen` |
-
-### Download Models
-
-Models can be loaded from **local paths** (preferred) or **HuggingFace Hub**. The framework automatically detects the model type and handles both cases.
-
-**Loading Priority**:
-1. **Local Path** (preferred): If the path exists as a directory, it will be used directly
-2. **HuggingFace Hub**: If not a local path, it will be loaded from HuggingFace Hub
-
-**Model Type Detection** (case-insensitive):
-- **Local Path**: Detected from directory name and `config.json` if available
-- **HuggingFace Hub**: Detected from model name substring
 
 **Detection Rules** (checked in order):
 1. **TraDo**: Contains "trado" → `TraDoAdapter`
@@ -285,7 +221,7 @@ adapter = get_model_adapter("Gen-Verse/MMaDA-8B-MixCoT", device="cuda:0")
 Models should be organized in the `./model/` directory at the project root:
 
 ```
-Uncode-new/
+Information-Gain-Sampler/
 ├── model/                    # Model directory (./model/, git-ignored)
 │   ├── trado/                # TraDo model (TraDo-8B-Instruct, TraDo-4B-Instruct, etc.)
 │   │   ├── config.json
@@ -313,21 +249,15 @@ Uncode-new/
 
 **Model Download Sizes** (approximate):
 - TraDo-8B-Instruct: ~16GB
-- TraDo-4B-Instruct: ~8GB
-- TraDo-8B-Thinking: ~16GB
 - LLaDA-8B-Instruct: ~16GB
 - Dream-v0-Instruct-7B: ~14GB
 - MMaDA-8B-MixCoT: ~16GB (required for text-to-image generation)
-- Mistral-7B-Instruct-v0.2: ~13GB
-- Qwen-7B-Chat: ~14GB
 
 **Download Models from HuggingFace**:
 
 ```bash
 # TraDo models
 huggingface-cli download Gen-Verse/TraDo-8B-Instruct --local-dir ./model/trado
-huggingface-cli download Gen-Verse/TraDo-4B-Instruct --local-dir ./model/trado-4b
-huggingface-cli download Gen-Verse/TraDo-8B-Thinking --local-dir ./model/trado-thinking
 
 # LLaDA
 huggingface-cli download GSAI-ML/LLaDA-8B-Instruct --local-dir ./model/llada
@@ -392,10 +322,6 @@ For text-to-image evaluation with MMaDA, you need two models:
 - **Note**: Models will be automatically downloaded on first use if using HuggingFace paths directly
 
 See [src/benchmarks/multimodal_tasks/multimodal_eval/README.md](src/benchmarks/multimodal_tasks/multimodal_eval/README.md) for detailed setup and configuration instructions.
-
-## Testing
-
-Before using the repository, please run the comprehensive test suite to ensure everything works correctly. See [TEST_CHECKLIST.md](TEST_CHECKLIST.md) for detailed testing instructions and commands.
 
 ## Reproducing Paper Experiments
 
@@ -505,35 +431,6 @@ We compare Info-Gain Sampler ($B=1$), Info-Gain Beam Search ($B>1$), and Best-of
 #### Compatibility with Temperature Sampling
 
 Info-Gain Sampler maintains stable, low trajectory uncertainty across various temperature scales without sensitive tuning. Importantly, low cumulative entropy reflects more optimized decoding rather than mode collapse, as evidenced by preserved diversity and competitive win rates in creative writing. In contrast, other baselines are highly sensitive to temperature changes, leading to decoding instability.
-
-### Output Structure
-
-All results are saved in `results/paper_reproduction/` with the following structure:
-
-```
-results/paper_reproduction/
-├── exp1_gsm8k_K1/
-│   ├── run_1.txt
-│   ├── run_1.log
-│   ├── run_2.txt
-│   └── ...
-├── exp1_gsm8k_K2/
-├── exp2_sdar_gsm8k_K1/
-├── exp3_multimodal/
-│   ├── geneval.log
-│   └── imagenet_fid.log
-└── exp4_creative_writing_T0.5_K1/
-    └── ...
-```
-
-Each result file contains the evaluation metrics (accuracy, FID, IS, etc.) for that specific run. The script automatically aggregates results across multiple runs.
-
-### Requirements
-
-- All required models must be downloaded and placed in the `model/` directory
-- All datasets must be prepared in the `data/` directory
-- Sufficient GPU memory (recommended: 24GB+ for large models)
-- Estimated time: 1-3 days depending on hardware and number of experiments
 
 ## Quick Start
 
@@ -693,658 +590,18 @@ To ensure efficiency, candidate evaluations are performed in parallel within a s
 
 Because Info-Gain effectively reduces uncertainty during decoding, the high-confidence bypass is triggered more frequently, making the mechanism exceptionally efficient.
 
-### Why Info-Gain is Effective
-
-**State uncertainty** serves as an effective indicator for determining whether the current decoding state lies close to the **training data manifold**. When decoded content is logically coherent and fluently expressed, the state resides near the data manifold, resulting in a concentrated predictive probability distribution and low uncertainty. Conversely, if the model lacks sufficient training on certain text forms, decoding enters inadequately covered regions, exhibiting dispersed probability distributions and high uncertainty.
-
-Existing greedy certainty-based samplers cannot recognize data manifold deviation signals reflected by state uncertainty. They select the most certain action at each step, but locally certain actions do not necessarily correspond to actions that keep subsequent states on the data manifold.
-
-In contrast, the Info-Gain Sampler actively perceives and utilizes state uncertainty through its information-gain term. When a candidate action would cause the state to deviate from the data manifold, the resulting state exhibits increased uncertainty, which negatively impacts the information-gain term and prevents such actions from being prioritized. This mechanism enables the Info-Gain Sampler to preserve logical coherence and fluent expression throughout the decoding path, even under high sampling temperatures.
-
-### Key Concepts
-
-**Info-Gain Sampler** is a decoding strategy that selects actions (token positions to decode) by maximizing information gain. It works in two modes:
-
-1. **Traditional mode** (`candidate_number=1`):
-   - Greedy selection based on heuristic scores
-   - Equivalent to traditional uncertainty-based samplers
-
-2. **Info-Gain mode** (`candidate_number>1`):
-   - Samples multiple candidate actions
-   - Evaluates each candidate by computing information gain
-   - Selects the action that maximizes immediate cost − information gain
-
-### Heuristic Functions
-
-| Heuristic | Description |
-|-----------|-------------|
-| `confidence` (default) | Model confidence (probability of predicted token) |
-| `pc` | PC-Sampler heuristic with frequency-based calibration |
-| `neg_entropy` | Negative entropy (higher entropy = lower score) |
-| `margin` | Margin between top-1 and top-2 probabilities |
-| `uniform` | Uniform random sampling |
-
-### Parameters
-
-| Parameter | Description | Default | Notes |
-|-----------|-------------|---------|-------|
-| `candidate_number` | Number of candidate actions to evaluate | 1 | `=1`: Greedy selection (baseline mode)<br>`>1`: Info-Gain mode (evaluates multiple candidates) |
-| `position_temperature` | Temperature for stochastic position sampling | 0.0 | `=0`: Deterministic selection (greedy)<br>`>0`: Stochastic sampling with Gumbel noise |
-| `heuristic` | Heuristic function for action scoring | `confidence` | See heuristic functions table above |
-| `beam_size` | Beam search queue size | 1 | `=1`: Single path search<br>`>1`: Multi-path beam search |
-| `use_kv_cache` | Enable KV-cache optimization | False | Caches prefix states to speed up generation (30-50% faster) |
-| `use_block_causal_mask` | Use block-causal attention mask | False | Enables bidirectional attention within blocks, causal across blocks |
-
-### Baseline Methods as Special Cases
-
-All baseline decoding methods are implemented as special cases of the base `generate` function:
-
-- **`original`**: `candidate_number=1`, `heuristic='confidence'`
-- **`pc_sampler`**: `candidate_number=1`, `heuristic='pc'`
-- **`entropy`**: `candidate_number=1`, `heuristic='neg_entropy'`
-- **`margin`**: `candidate_number=1`, `heuristic='margin'`
-
-## Supported Models
-
-| Model | Type | Adapter | KV-Cache | Notes |
-|-------|------|---------|----------|-------|
-| LLaDA | MDM | `LLaDAAdapter` | ✅ (truncate) | Default mask_id=126336 |
-| Dream | MDM | `DreamAdapter` | ✅ (native) | Logits shifted by one position |
-| SDAR | MDM | `SDARAdapter` | ✅ (truncate) | Interface ready; model implementation pending |
-| Mistral | AR Baseline | `MistralAdapter` | ❌ | Standard chat template |
-| Qwen | AR Baseline | `QwenAdapter` | ❌ | Standard chat template |
-
-**Model Detection**: Model type is automatically detected by analyzing keywords in the model name or path. The detection is case-insensitive and works for both HuggingFace Hub paths and local paths. Use `get_model_adapter(model_name, device)` for automatic detection and loading.
-
-**KV-Cache Support**: All MDM models support KV-cache optimization to speed up generation:
-- **Dream models**: Use native `store_kv` parameter for efficient cache management (no truncation needed)
-- **LLaDA/SDAR models**: Require cache truncation after forward passes (handled automatically)
-- **Performance**: 30-50% speedup for long sequences, especially with Info-Gain sampling
-
-## Evaluation Tasks
-
-### Text Tasks
-
-| Task | Dataset | Description |
-|------|---------|-------------|
-| `humaneval` | `humaneval.jsonl` | Python code completion |
-| `mbpp` | `mbpp.jsonl` | Python code generation |
-| `math500` | `math500.jsonl` | Mathematical reasoning |
-| `gsm8k` | `gsm8k.jsonl` | Grade school math |
-| `gpqa` | `gpqa.jsonl` | Graduate-level QA |
-| `sudoku` | `sudoku.csv` | 4×4 Sudoku puzzle solving |
-| `countdown` | `countdown.jsonl` | Arithmetic operations game |
-| `creativity_writing` | `creativity_writing.jsonl` | Creative story writing (200 prompts) |
-
-### Multimodal Tasks
-
-| Task | Description | Metrics |
-|------|-------------|---------|
-| `geneval` | Text-to-image generation evaluation | FID, sFID, IS, Precision, Recall, CLIP Score |
-
-See [src/benchmarks/text_tasks/creativity_writing/README.md](src/benchmarks/text_tasks/creativity_writing/README.md) for detailed creative writing evaluation instructions.
-See [src/benchmarks/multimodal_tasks/multimodal_eval/README.md](src/benchmarks/multimodal_tasks/multimodal_eval/README.md) for multimodal evaluation instructions.
-
-## KV-Cache Optimization
-
-KV-cache optimization significantly speeds up generation by caching previously computed key-value states. All MDM models (Dream, LLaDA, SDAR) support KV-cache:
-
-```python
-output = generate(
-    model=model,
-    prompt=prompt,
-    steps=256,
-    gen_length=256,
-    block_length=32,
-    adapter=adapter,
-    use_kv_cache=True,  # Enable KV-cache
-    # ... other parameters
-)
-```
-
-**How it works:**
-1. **Prefill phase**: Process the prompt tokens once and cache their key-value states
-2. **Block-by-block generation**: For each generation block, only process new tokens while reusing cached prefix states
-3. **Cache update**: After completing each block, update the cache with the new block's key-value states
-4. **Lookahead optimization**: In Info-Gain mode, candidate evaluation reuses the committed prefix cache
-
-**Implementation details:**
-- **Dream models**: Use native `store_kv=False` parameter to prevent cache growth during lookahead
-- **LLaDA/SDAR models**: Automatically truncate cache back to committed length after each forward pass
-- **Block completion**: Cache is updated once per block completion, not per denoising step
-
-**Performance**: KV-cache can reduce generation time by 30-50% for long sequences, especially with Info-Gain sampling where multiple candidates are evaluated.
-
-## Evaluation
-
-All evaluation tasks can be run using the unified `Eval.sh` script. Each task has built-in defaults for generation parameters, which can be overridden via command-line flags.
-
-### Text Task Evaluation
-
-#### HumanEval (Code Completion)
-
-```bash
-cd scripts
-
-# Info-Gain Sampler (recommended)
-bash Eval.sh \
-    --task humaneval \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --heuristic confidence \
-    --use_kv_cache
-
-# PC-Sampler baseline
-bash Eval.sh \
-    --task humaneval \
-    --model /path/to/model \
-    --mode pc_sampler \
-    --lambd 0.25 \
-    --alpha 100
-
-# Original (confidence-based)
-bash Eval.sh \
-    --task humaneval \
-    --model /path/to/model \
-    --mode original
-```
-
-**Output**: Results saved to `results/humaneval_<mode>_<timestamp>/`
-
-#### MBPP (Code Generation)
-
-```bash
-bash Eval.sh \
-    --task mbpp \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2
-```
-
-**Output**: Results saved to `results/mbpp_<mode>_<timestamp>/`
-
-#### MATH-500 (Mathematical Reasoning)
-
-```bash
-bash Eval.sh \
-    --task math500 \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --temperature 0.7
-```
-
-**Output**: Results saved to `results/math500_<mode>_<timestamp>/`
-
-#### GSM8K (Grade School Math)
-
-```bash
-bash Eval.sh \
-    --task gsm8k \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --gen_length 512 \
-    --steps 512
-```
-
-**Output**: Results saved to `results/gsm8k_<mode>_<timestamp>/`
-
-#### GPQA (Graduate-Level QA)
-
-```bash
-bash Eval.sh \
-    --task gpqa \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8
-```
-
-**Output**: Results saved to `results/gpqa_<mode>_<timestamp>/`
-
-#### Sudoku (4×4 Puzzle Solving)
-
-```bash
-bash Eval.sh \
-    --task sudoku \
-    --model /path/to/model \
-    --mode info-gain \
-    --candidate_number 8
-```
-
-**Note**: Sudoku uses a special prompt format with embedded mask tokens. The task automatically:
-- Calculates the number of empty cells (mask tokens) in the puzzle
-- Sets `gen_length=0` (no additional generation needed)
-- Sets `steps` equal to the number of empty cells
-- Sets `block_length` equal to the number of empty cells (single block)
-
-**Output**: Results saved to `results/sudoku_<mode>_<timestamp>/`
-
-#### Countdown (Arithmetic Operations)
-
-```bash
-# With few-shot examples (default)
-bash Eval.sh \
-    --task countdown \
-    --model /path/to/model \
-    --mode info-gain \
-    --candidate_number 8
-
-# Without few-shot examples
-bash Eval.sh \
-    --task countdown \
-    --model /path/to/model \
-    --mode info-gain \
-    --candidate_number 8 \
-    --no_shot
-```
-
-**Output**: Results saved to `results/countdown_<mode>_<timestamp>/`
-
-#### Creativity Writing
-
-```bash
-# Generate outputs
-bash Eval.sh \
-    --task creativity_writing \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --gen_length 512
-
-# Output saved to src/benchmarks/text_tasks/creativity_writing/outputs/<model>_<mode>.json
-```
-
-**Evaluate with LLM-as-Judge**:
-
-```bash
-cd Creativity_writing
-
-# Pairwise comparison (compare two models)
-python judge.py \
-    --model_outputs outputs/model_a.json \
-    --reference_outputs outputs/model_b.json \
-    --judge_model gpt-4o \
-    --mode pairwise
-
-# Single-score rating
-python judge.py \
-    --model_outputs outputs/model_a.json \
-    --judge_model gpt-4o \
-    --mode single
-```
-
-**Note**: 
-- Set `OPENAI_API_KEY` environment variable before running the judge script
-- For custom API endpoints, set `OPENAI_API_BASE` (e.g., `https://api.openai.com/v1`)
-- The judge script supports both OpenAI-compatible APIs and custom endpoints
-
-**Output**: 
-- Generation: `src/benchmarks/text_tasks/creativity_writing/outputs/<model>_<mode>.json`
-- Judge results: `src/benchmarks/text_tasks/creativity_writing/outputs/judge_<mode>_<timestamp>.json`
-
-### Multimodal Task Evaluation
-
-#### GenEval (Text-to-Image Generation)
-
-**Step 1: Generate Images**
-
-```bash
-cd src/benchmarks/multimodal_tasks/multimodal_eval
-
-# Edit scripts/run_generate.sh to set model paths, then:
-bash scripts/run_generate.sh
-
-# Or directly:
-python t2i_generate.py \
-    config=configs/mmada_t2i.yaml \
-    mmada_model_path=../mmada-mix \
-    vq_model_path=../magvitv2 \
-    validation_prompts_file=prompts/generation_prompts.txt \
-    output_dir=./output_geneval \
-    batch_size=1 \
-    text_to_image.samples_per_prompt=4 \
-    use_geneval_format=True
-```
-
-**Step 2: Evaluate with GenEval**
-
-```bash
-# GenEval evaluation (object detection + color classification)
-bash scripts/run_eval_geneval.sh ./output_geneval
-
-# View detailed scores
-python view_scores.py results/geneval_results.jsonl
-```
-
-**Step 3: CLIP Score Evaluation**
-
-```bash
-bash scripts/run_eval_clip.sh ./output_geneval
-
-# Output: results/clip_scores.json
-```
-
-**Step 4: FID / IS / Precision / Recall**
-
-```bash
-# FID evaluation (requires data/VIRTUAL_imagenet512.npz)
-bash scripts/run_eval_fid.sh ./data/VIRTUAL_imagenet512.npz ./output_geneval
-
-# Or directly:
-python eval_fid.py \
-    ./data/VIRTUAL_imagenet512.npz \
-    ./output_geneval \
-    --batch-size 64
-```
-
-**One-Click Pipeline** (recommended for full evaluation):
-
-```bash
-cd src/benchmarks/multimodal_tasks/multimodal_eval
-bash scripts/run_all.sh
-```
-
-**Pipeline Steps**:
-1. **Generation**: Generates images from GenEval prompts (saves to `output_geneval/`)
-2. **GenEval**: Evaluates object detection, counting, color, and spatial relationships
-3. **CLIP Score**: Calculates semantic alignment between images and prompts
-4. **FID**: Computes distribution similarity metrics (requires `data/VIRTUAL_imagenet512.npz`)
-
-**Automatic Downloads**:
-- **InceptionV3 model** (for FID calculation): Automatically downloaded from OpenAI on first use
-  - URL: `https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/classify_image_graph_def.pb`
-  - Location: `src/benchmarks/multimodal_tasks/multimodal_eval/classify_image_graph_def.pb` (auto-downloaded)
-  - Size: ~100MB
-
-**Output Locations**:
-- Generated images: `src/benchmarks/multimodal_tasks/multimodal_eval/output_geneval/`
-- GenEval results: `src/benchmarks/multimodal_tasks/multimodal_eval/results/geneval_results.jsonl`
-- CLIP scores: `src/benchmarks/multimodal_tasks/multimodal_eval/results/clip_scores.json`
-- FID metrics: Printed to console (also saved to log files)
-
-#### ImageNet FID End-to-End
-
-```bash
-cd src/benchmarks/multimodal_tasks/multimodal_eval
-
-# Full run (50K images)
-bash scripts/run_imagenet_fid.sh
-
-# Test run (100 images)
-bash scripts/run_imagenet_fid.sh --test
-
-# Eval-only (skip generation)
-bash scripts/run_imagenet_fid.sh --eval-only
-```
-
-**Output**: 
-- FID scores printed to console in real-time
-- Detailed results saved to `results/imagenet_fid_<timestamp>.txt`
-- Generated images saved to `output_imagenet/` (50K images for full run, 100 for test)
-
-### Common Evaluation Options
-
-All tasks support the following common options:
-
-```bash
-bash Eval.sh \
-    --task <task_name> \
-    --model <model_path> \
-    --mode <generation_mode> \
-    --device cuda:0 \                    # GPU device
-    --temperature 0.7 \                  # Sampling temperature
-    --gen_length 256 \                   # Override default gen_length
-    --steps 256 \                        # Override default steps
-    --block_length 32 \                  # Override default block_length
-    --use_kv_cache \                     # Enable KV-cache optimization
-    --result_dir results/custom_dir \    # Custom output directory
-    --result_path results/custom.json   # Custom output file path
-```
-
-**Generation Modes**:
-- `original`: Confidence-based greedy selection
-- `pc_sampler`: PC-Sampler with frequency calibration
-- `eb_sampler`: Entropy-based sampler
-- `fast_dllm`: Fast dLLM with dynamic thresholding
-- `entropy`: Negative entropy heuristic
-- `margin`: Margin heuristic
-- `info-gain`: Info-Gain Sampler (recommended)
-
-**Info-Gain Specific Options**:
-- `--candidate_number N`: Number of candidate actions to evaluate (default: 1)
-  - `N=1`: Greedy selection based on heuristic scores (baseline mode)
-  - `N>1`: Info-Gain mode - evaluates N candidates and selects the one with maximum information gain
-- `--position_temperature T`: Temperature for stochastic position sampling (default: 0.0)
-  - `T=0`: Deterministic selection (always picks top-k positions)
-  - `T>0`: Stochastic sampling with Gumbel noise (adds exploration)
-- `--heuristic H`: Heuristic function for scoring positions (default: `confidence`)
-  - Options: `confidence`, `pc`, `neg_entropy`, `margin`, `uniform`
-  - See "Heuristic Functions" section for details
-- `--tokens_per_step K`: Number of tokens to decode per step (default: 1)
-  - `K=1`: Standard decoding (one token per step)
-  - `K>1`: K-step decoding (decodes K tokens simultaneously)
-
-### Using eval.py Directly
-
-For more control, use `eval.py` directly:
-
-```bash
-cd scripts
-python eval.py \
-    --task humaneval \
-    --model_name GSAI-ML/LLaDA-8B-Instruct \
-    --device cuda:0 \
-    --mode info-gain \
-    --heuristic confidence \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --data_path ../data/humaneval.jsonl \
-    --result_path ../results/humaneval_info_gain
-```
-
-### Using lm-evaluation-harness
-
-For integration with the lm-evaluation-harness framework:
-
-```bash
-python -m src.utils.lm_eval_adapter \
-    --model llada_dist \
-    --model_args model_path=GSAI-ML/LLaDA-8B-Base,mode=info-gain \
-    --tasks lambada_openai \
-    --batch_size 32
-```
-
-## Reproducibility
-
-This section provides complete end-to-end examples for reproducing evaluation results.
-
-### Example 1: HumanEval with Info-Gain Sampler
-
-**Step 1: Environment Setup**
-
-```bash
-# Clone repository
-git clone <repository-url>
-cd Uncode-new
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-**Step 2: Data Preparation**
-
-```bash
-# Download HumanEval dataset
-# Place it in data/humaneval.jsonl
-
-# Generate baseline file (if needed)
-python utils/calculate_p_baseline.py \
-    --input_file /path/to/reference_corpus.jsonl \
-    --output_file data/baseline/reference_corpus_llada.json \
-    --model_name GSAI-ML/LLaDA-8B-Instruct
-```
-
-**Step 3: Run Evaluation**
-
-```bash
-cd scripts
-
-bash Eval.sh \
-    --task humaneval \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --heuristic confidence \
-    --use_kv_cache \
-    --device cuda:0
-```
-
-**Step 4: View Results**
-
-```bash
-# Results are saved to results/humaneval_info-gain_<timestamp>/
-# Check the result files for accuracy and pass rates
-cat results/humaneval_info-gain_*/results.txt
-```
-
-### Example 2: MATH-500 with PC-Sampler
-
-```bash
-cd scripts
-
-bash Eval.sh \
-    --task math500 \
-    --model /path/to/Dream-v0-Instruct-7B \
-    --mode pc_sampler \
-    --lambd 0.25 \
-    --alpha 100 \
-    --baseline_name ../data/baseline/reference_corpus_dream.json \
-    --temperature 0.7
-```
-
-### Example 3: Creativity Writing with LLM-as-Judge
-
-**Step 1: Generate Outputs**
-
-```bash
-cd scripts
-
-bash Eval.sh \
-    --task creativity_writing \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --gen_length 512
-```
-
-**Step 2: Evaluate with Judge**
-
-```bash
-cd Creativity_writing
-
-# Set API key
-export OPENAI_API_KEY="your-api-key"
-
-# Run judge evaluation
-python judge.py \
-    --model_outputs outputs/llada_8b_instruct_info-gain_confidence_K1.json \
-    --judge_model gpt-4o \
-    --mode single
-```
-
-### Example 4: Multimodal Evaluation (GenEval + FID)
-
-**Step 1: Setup Multimodal Environment**
-
-```bash
-cd src/benchmarks/multimodal_tasks/multimodal_eval
-
-# Install additional dependencies
-pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
-
-# Clone mmdetection (if needed)
-cd ..
-git clone https://github.com/open-mmlab/mmdetection.git
-cd src/benchmarks/multimodal_tasks/multimodal_eval
-```
-
-**Step 2: Prepare Models**
-
-```bash
-# Ensure MMaDA and VQ models are available
-# Edit scripts/run_generate.sh to set paths:
-# mmada_model_path=../mmada-mix
-# vq_model_path=../magvitv2
-```
-
-**Step 3: Run Full Evaluation**
-
-```bash
-bash scripts/run_all.sh
-```
-
-This will:
-1. Generate images from GenEval prompts
-2. Run GenEval evaluation (object detection + color)
-3. Calculate CLIP Score
-4. Calculate FID, IS, Precision, Recall
-
-**Step 4: View Results**
-
-```bash
-# GenEval results
-python view_scores.py results/geneval_results.jsonl
-
-# CLIP Score
-cat results/clip_scores.json
-
-# FID results (printed to console)
-```
-
-### Reproducing Paper Results
-
-To reproduce results from papers or previous experiments, ensure consistency in:
-
-1. **Model versions**: Use the exact same model checkpoints (same commit hash or version tag)
-   - Check model commit hashes if using HuggingFace models
-   - For local models, ensure weights are identical
-
-2. **Hyperparameters**: Match all generation parameters exactly
-   - `temperature`, `steps`, `gen_length`, `block_length`
-   - `candidate_number`, `position_temperature`, `heuristic`
-   - `lambd`, `alpha` (for PC-Sampler)
-   - `use_kv_cache` flag (affects generation speed but not results)
-
-3. **Data splits**: Use the same dataset versions and splits
-   - Ensure dataset files are identical (same number of samples, same order)
-   - For tasks with train/test splits, use the same split
-
-4. **Baseline files**: Use baseline files generated from the same reference corpus
-   - Same corpus source and size
-   - Same tokenizer/model used for tokenization
-   - Verify baseline file contents match
-
-5. **Random seeds**: Set random seeds if reproducibility is critical
-   - Note: Current implementation does not expose seed parameter
-   - For deterministic results, ensure PyTorch/CUDA random state is controlled externally
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on code style, commit messages, and pull request process.
-
 ## License
 
-[Add your license information here]
+MIT License.
 
----
+## Citation
+If you use this code in your research, please cite:
 
-**Note**: This repository is actively maintained. For issues, questions, or contributions, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
-
+```bibtex
+@article{info-gain-sampler,
+  title={Improve Sampling for Masked Diffusion Models via Information Gain},
+  author={Kaisen Yang, Jayden Teoh, Kaicheng Yang, Yitong Zhang, Alex Lamb},
+  year={2026},
+  journal={arXiv preprint},
+}
+```
