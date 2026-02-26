@@ -106,6 +106,23 @@ pip install -e "lm-evaluation-harness[ifeval,math]"
 > (not as a standalone git repo), the original `git submodule` approach won't work.
 > Use the `git clone` command above instead.
 
+### (optional) Download evaluation datasets
+
+If your machine has limited internet access, pre-download datasets for offline evaluation:
+```bash
+# download all evaluation datasets (GSM8K, MBPP, HumanEval, MATH)
+python scripts/prepare_eval_data.py
+
+# or download specific tasks
+python scripts/prepare_eval_data.py --tasks gsm8k humaneval
+
+# or download to a custom directory
+python scripts/prepare_eval_data.py --data_dir ./eval_data
+
+# then run evaluation with offline mode
+export HF_DATASETS_OFFLINE=1
+```
+
 ### (optional) Slurm setup
 For [Slurm](https://slurm.schedmd.com/) users, update [`scripts/train.slurm.sh`](/scripts/train.slurm.sh) for your cluster:
 ```diff
