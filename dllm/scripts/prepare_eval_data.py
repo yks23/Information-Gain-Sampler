@@ -19,14 +19,13 @@ DATASETS = {
     "gsm8k": ("openai/gsm8k", "main"),
     "mbpp": ("google-research-datasets/mbpp", "full"),
     "humaneval": ("openai/openai_humaneval", None),
-    "math": ("lighteval/MATH", None),
-    "minerva_math_algebra": ("lighteval/MATH", "algebra"),
-    "minerva_math_counting_and_prob": ("lighteval/MATH", "counting_and_probability"),
-    "minerva_math_geometry": ("lighteval/MATH", "geometry"),
-    "minerva_math_intermediate_algebra": ("lighteval/MATH", "intermediate_algebra"),
-    "minerva_math_num_theory": ("lighteval/MATH", "number_theory"),
-    "minerva_math_prealgebra": ("lighteval/MATH", "prealgebra"),
-    "minerva_math_precalc": ("lighteval/MATH", "precalculus"),
+    "minerva_math_algebra": ("EleutherAI/hendrycks_math", "algebra"),
+    "minerva_math_counting_and_prob": ("EleutherAI/hendrycks_math", "counting_and_probability"),
+    "minerva_math_geometry": ("EleutherAI/hendrycks_math", "geometry"),
+    "minerva_math_intermediate_algebra": ("EleutherAI/hendrycks_math", "intermediate_algebra"),
+    "minerva_math_num_theory": ("EleutherAI/hendrycks_math", "number_theory"),
+    "minerva_math_prealgebra": ("EleutherAI/hendrycks_math", "prealgebra"),
+    "minerva_math_precalc": ("EleutherAI/hendrycks_math", "precalculus"),
 }
 
 ALL_TASKS = {
@@ -51,7 +50,7 @@ def download_dataset(name, path, subset, cache_dir):
 
     print(f"  Downloading: {path}" + (f" [{subset}]" if subset else ""))
     try:
-        ds = load_dataset(path, subset, cache_dir=cache_dir, trust_remote_code=True)
+        ds = load_dataset(path, subset, cache_dir=cache_dir)
         total = sum(len(split) for split in ds.values())
         print(f"  ✓ {name}: {total} examples ({', '.join(f'{k}={len(v)}' for k, v in ds.items())})")
     except Exception as e:
