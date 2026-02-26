@@ -1,14 +1,20 @@
 """
 Info-Gain Sampler — shared core.
 
-The Info-Gain objective balances immediate decoding cost against future
-uncertainty reduction:
+The original Info-Gain objective is:
+
+    J_IG(a) = IG(a) - C(a)    (maximise)
+
+where IG(a) = H(z_t) - H(z_{t-1}) is the information gain (state-uncertainty
+reduction) and C(a) is the immediate cost (entropy sum over chosen positions).
+
+Since H(z_t) is a constant w.r.t. action *a* at each step, maximising J_IG is
+equivalent to minimising:
 
     J(a) = C(a) + H_next(a)
 
-where C(a) is the entropy sum over positions chosen by action a (immediate
-cost) and H_next(a) is the mean entropy over remaining masked positions after
-applying a (future uncertainty).  The action with the lowest J is selected.
+where H_next(a) is the mean entropy over remaining masked positions after
+applying *a*.  The code uses this simplified form.
 """
 
 import torch
