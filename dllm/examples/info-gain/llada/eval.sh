@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
 # Info-Gain / LookUM evaluation for LLaDA
 #
+# Prerequisites:
+#   git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
+#   pip install -e "lm-evaluation-harness[ifeval,math]"
+#   pip install -e .
+#
 # Usage:
 #   bash examples/info-gain/llada/eval.sh
 #   bash examples/info-gain/llada/eval.sh --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" --variant lookum --num_gpu 4
 
+set -e
 export PYTHONPATH=.:$PYTHONPATH
 export HF_ALLOW_CODE_EVAL=1
 export HF_DATASETS_TRUST_REMOTE_CODE=True
+
+# Check that the dllm-fork of lm-evaluation-harness is installed (not the upstream one)
+if ! python -c "from lm_eval.tasks import TaskManager; tm=TaskManager(); assert 'humaneval_instruct_llada' in tm.all_tasks, 'custom tasks not found'" 2>/dev/null; then
+    echo "ERROR: Custom lm-eval tasks not found (humaneval_instruct_llada, mbpp_instruct_llada)."
+    echo "Please install the dllm-fork of lm-evaluation-harness:"
+    echo "  git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness"
+    echo "  pip install -e \"lm-evaluation-harness[ifeval,math]\""
+    exit 1
+fi
 
 model_name_or_path="GSAI-ML/LLaDA-8B-Instruct"
 num_gpu=1

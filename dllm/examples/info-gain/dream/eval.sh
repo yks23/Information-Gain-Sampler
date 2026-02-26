@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # Info-Gain / LookUM evaluation for Dream
 #
+# Prerequisites:
+#   git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
+#   pip install -e "lm-evaluation-harness[ifeval,math]"
+#   pip install -e .
+#
 # Usage:
 #   bash examples/info-gain/dream/eval.sh
 #   bash examples/info-gain/dream/eval.sh --model_name_or_path "Dream-org/Dream-v0-Instruct-7B" --variant lookum --num_gpu 4
 
+set -e
 export PYTHONPATH=.:$PYTHONPATH
 export HF_ALLOW_CODE_EVAL=1
 export HF_DATASETS_TRUST_REMOTE_CODE=True

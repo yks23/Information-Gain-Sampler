@@ -2,6 +2,24 @@
 
 Resources and examples for inferencing **LLaDA** and **Dream** with lookahead-based samplers.
 
+## Setup
+
+```bash
+# 1. Install dllm
+pip install -e .
+
+# 2. (For evaluation) Install the dllm-fork of lm-evaluation-harness
+#    This fork contains custom tasks (humaneval_instruct_llada, mbpp_instruct_llada, etc.)
+git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
+pip install -e "lm-evaluation-harness[ifeval,math]"
+
+# 3. (Optional) Pre-download evaluation datasets for offline use
+python scripts/prepare_eval_data.py
+```
+
+> **Important**: The standard `pip install lm_eval` does NOT contain the custom tasks
+> required for evaluation. You must install the dllm-fork above.
+
 ## Variants
 
 | Variant | Objective (maximise) | `--variant` |
