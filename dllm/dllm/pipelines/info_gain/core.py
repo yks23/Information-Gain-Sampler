@@ -1,16 +1,15 @@
 """
-Info-Gain Sampler — shared core.
+Info-Gain / LookUM Sampler — shared core.
 
-Objective (maximise):
+Variants (controlled by ``variant`` parameter):
 
-    J(a) = IG(a) - C(a)
+  **Info-Gain** (default):  J(a) = IG(a) - C(a)  =  -C(a) - H_next(a)  + const
+  **LookUM**:               J(a) = IG(a)          =         -H_next(a)  + const
 
-where IG(a) = H(z_t) - H_next(a) is the information gain (reduction in mean
-entropy over remaining masked positions) and C(a) is the immediate cost
-(entropy sum over positions chosen by action a).
-
-H(z_t) is constant w.r.t. *a*, so this is equivalently: maximise -C(a) - H_next(a),
-i.e. the candidate with the highest J wins.
+where IG(a) = H(z_t) - H_next(a) is the information gain and C(a) is the
+immediate cost (entropy sum over chosen positions).  H(z_t) is constant w.r.t.
+action *a* at each step, so both reduce to maximising the expression above.
+LookUM drops the C(a) term, selecting purely by future uncertainty reduction.
 """
 
 import torch
@@ -116,19 +115,29 @@ def generate_candidates(
     return actions, x0s, conf_base, valid, probs_base
 
 
-def score_candidates(logits, next_logits, x_batch, actions, mask_id, device):
+def score_candidates(
+    logits, next_logits, x_batch, actions, mask_id, device,
+    variant: str = "info_gain",
+):
     """
-    Compute ``J(a) = IG(a) - C(a)`` for each candidate (higher is better).
+    Compute per-candidate objective J (higher is better).
 
-    Returns ``(C, H_next, J)`` where ``J = -C - H_next`` (since IG = H_cur - H_next
-    and H_cur is constant, maximising IG - C ≡ maximising -C - H_next).
+    Variants:
+      - ``"info_gain"``: J = IG(a) - C(a) = -C - H_next  (+ const)
+      - ``"lookum"``:    J = IG(a)         =     -H_next  (+ const)
     """
-    ce = compute_entropy(logits)  # [1, T]
-    C = torch.stack([ce[0, a].sum() for a in actions])  # [nc]  immediate cost
     ne = compute_entropy(next_logits)  # [nc, T]
     rm = x_batch == mask_id
     H_next = torch.where(rm, ne, ne.new_zeros(1)).sum(-1) / (
         rm.sum(-1).float() + 1e-10
-    )  # [nc]  future uncertainty
-    J = -C - H_next  # maximise
+    )  # [nc]
+
+    if variant == "lookum":
+        J = -H_next
+        C = H_next.new_zeros(H_next.shape)  # unused, but keep return shape
+    else:
+        ce = compute_entropy(logits)  # [1, T]
+        C = torch.stack([ce[0, a].sum() for a in actions])  # [nc]
+        J = -C - H_next
+
     return C, H_next, J

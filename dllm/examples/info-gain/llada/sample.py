@@ -33,6 +33,7 @@ class SamplerConfig(dllm.pipelines.info_gain.llada.InfoGainLLaDASamplerConfig):
     threshold: float = 0.9  # high-confidence bypass threshold
     candidate_number: int = 8  # number of Info-Gain candidates
     position_temperature: float = 0.1  # position sampling temperature
+    variant: str = "info_gain"  # "info_gain" or "lookum"
     begin_suppress_tokens: list[int] = None
 
 
@@ -82,8 +83,9 @@ if script_args.visualize:
     terminal_visualizer.visualize(outputs.histories, rich=True)
 
 print(
-    f"Config: use_cache={sampler_config.use_cache}, threshold={sampler_config.threshold}, "
-    f"candidate_number={sampler_config.candidate_number}, position_temperature={sampler_config.position_temperature}"
+    f"Config: variant={sampler_config.variant}, use_cache={sampler_config.use_cache}, "
+    f"threshold={sampler_config.threshold}, candidate_number={sampler_config.candidate_number}, "
+    f"position_temperature={sampler_config.position_temperature}"
 )
 print(
     f"Total NFE:{len(outputs.histories) - 1}. Time taken for sampling: {end - start:.2f} seconds"

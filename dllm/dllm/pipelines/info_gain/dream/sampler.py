@@ -55,6 +55,7 @@ def _info_gain_select(
     temperature=0.0,
     top_p=None,
     top_k=None,
+    variant="info_gain",
 ):
     device, T = x.device, x.shape[1]
     neg = torch.finfo(torch.float32).min
@@ -181,7 +182,7 @@ def _info_gain_select(
             next_logits = nl
 
     _, _, scores = score_candidates(
-        logits, next_logits, xb, actions, mask_token_id, device
+        logits, next_logits, xb, actions, mask_token_id, device, variant=variant
     )
     best = scores.argmax().item()
     xo = x.clone()
@@ -207,6 +208,7 @@ class InfoGainDreamSamplerConfig(BaseSamplerConfig):
     threshold: float | None = None
     candidate_number: int = 8
     position_temperature: float = 0.1
+    variant: str = "info_gain"  # "info_gain" or "lookum"
 
 
 @dataclass
@@ -231,6 +233,7 @@ class InfoGainDreamSampler(BaseSampler):
                 "right_shift_logits",
                 "candidate_number",
                 "position_temperature",
+                "variant",
             )
         }
         uc = C["use_cache"]
@@ -288,6 +291,7 @@ class InfoGainDreamSampler(BaseSampler):
             temperature=C["temperature"],
             top_p=C["top_p"],
             top_k=C["top_k"],
+            variant=C["variant"],
         )
 
         def _fill(logits, mi):

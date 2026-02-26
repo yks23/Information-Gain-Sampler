@@ -4,6 +4,29 @@
 
 A unified decoding framework for Masked Diffusion Models (MDMs) that combines trajectory planning with information-gain maximization. This repository provides an implementation of the **Info-Gain Sampler**, a flexible decoding strategy that supports multiple heuristic functions and can adapt to various generation tasks.
 
+> **Note**: This repository is under active development for ongoing experiments and has not been fully cleaned up. The `dllm/` directory is an integration sub-repository based on [dllm](https://github.com/ZHZisZZ/dllm), containing our Info-Gain / LookUM sampler pipelines that plug into the dllm framework.
+
+## Repository Structure
+
+```
+Information-Gain-Sampler/
+├── src/                            # Original evaluation framework
+│   ├── generators/                 # Generation algorithms (base, info_gain, eb_sampler, fast_dllm)
+│   ├── prompts/                    # Task prompt templates
+│   ├── utils/                      # Evaluation utilities
+│   └── benchmarks/                 # Benchmark tasks (text & multimodal)
+├── scripts/                        # Evaluation entry points (eval.py, Eval.sh, etc.)
+├── dllm/                           # Integration with github.com/ZHZisZZ/dllm
+│   ├── dllm/pipelines/info_gain/   # ★ Info-Gain & LookUM sampler pipelines
+│   │   ├── core.py                 #   Shared algorithm core
+│   │   ├── llada/sampler.py        #   LLaDA sampler (none/prefix/dual cache)
+│   │   └── dream/sampler.py        #   Dream sampler (none/prefix/dual cache)
+│   └── examples/info-gain/         # ★ Inference examples for LLaDA & Dream
+├── data/                           # Baseline frequency files (gitignored)
+├── model/                          # Model weights (gitignored)
+└── README.md
+```
+
 ## Table of Contents
 
 - [Motivation](#motivation)

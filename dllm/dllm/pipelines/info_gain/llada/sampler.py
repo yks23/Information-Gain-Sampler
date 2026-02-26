@@ -46,6 +46,7 @@ def _info_gain_select(
     attention_mask=None,
     right_shift_logits=False,
     suppress_fn=None,
+    variant="info_gain",
 ):
     device, T = x.device, x.shape[1]
     result = generate_candidates(
@@ -127,7 +128,9 @@ def _info_gain_select(
             next_logits = nl
 
     # Score & select
-    _, _, scores = score_candidates(logits, next_logits, xb, actions, mask_id, device)
+    _, _, scores = score_candidates(
+        logits, next_logits, xb, actions, mask_id, device, variant=variant
+    )
     best = scores.argmax().item()
     xo = x.clone()
     xo[0, actions[best]] = x0s[best][0, actions[best]]
@@ -152,6 +155,7 @@ class InfoGainLLaDASamplerConfig(BaseSamplerConfig):
     threshold: float | None = None  # high-confidence bypass
     candidate_number: int = 8
     position_temperature: float = 0.1
+    variant: str = "info_gain"  # "info_gain" or "lookum"
 
 
 @dataclass
@@ -181,6 +185,7 @@ class InfoGainLLaDASampler(BaseSampler):
                 "candidate_number",
                 "position_temperature",
                 "remasking",
+                "variant",
             )
         }
         use_cache = C["use_cache"]
@@ -250,6 +255,7 @@ class InfoGainLLaDASampler(BaseSampler):
             mask_id=mask_id,
             right_shift_logits=C["right_shift_logits"],
             suppress_fn=suppress,
+            variant=C["variant"],
         )
 
         # ── block loop ──────────────────────────────────────────────────
