@@ -21,6 +21,7 @@ from dllm.core.samplers.utils import add_gumbel_noise
 
 # ── utilities ────────────────────────────────────────────────────────────────
 
+
 def compute_entropy(logits: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
     """Per-position Shannon entropy.  ``[B, L, V] → [B, L]``."""
     p = F.softmax(logits.float(), dim=-1).clamp(min=eps)
@@ -44,16 +45,17 @@ def pad_logits(block_logits, full_len, offset, device):
     """Zero-pad block-sized logits to full sequence length."""
     B, _, V = block_logits.shape
     out = block_logits.new_zeros(B, full_len, V)
-    out[:, offset:offset + block_logits.shape[1]] = block_logits
+    out[:, offset : offset + block_logits.shape[1]] = block_logits
     return out
 
 
 # ── candidate generation & scoring ──────────────────────────────────────────
 
+
 def generate_candidates(
-    logits,            # [1, T, V]
-    x,                 # [1, T]
-    mask_allowed,      # [1, T] bool — positions eligible for unmasking
+    logits,  # [1, T, V]
+    x,  # [1, T]
+    mask_allowed,  # [1, T] bool — positions eligible for unmasking
     block_start: int,
     block_end: int,
     k: int,
@@ -107,7 +109,9 @@ def generate_candidates(
         act = valid[tk]
         key = tuple(sorted(act.tolist()))
         if key not in seen:
-            seen.add(key); actions.append(act); x0s.append(x0_c)
+            seen.add(key)
+            actions.append(act)
+            x0s.append(x0_c)
 
     return actions, x0s, conf_base, valid, probs_base
 
@@ -119,11 +123,12 @@ def score_candidates(logits, next_logits, x_batch, actions, mask_id, device):
     Returns ``(C, H_next, J)`` where ``J = -C - H_next`` (since IG = H_cur - H_next
     and H_cur is constant, maximising IG - C ≡ maximising -C - H_next).
     """
-    ce = compute_entropy(logits)                         # [1, T]
-    C = torch.stack([ce[0, a].sum() for a in actions])   # [nc]  immediate cost
-    ne = compute_entropy(next_logits)                    # [nc, T]
-    rm = (x_batch == mask_id)
-    H_next = (torch.where(rm, ne, ne.new_zeros(1)).sum(-1)
-              / (rm.sum(-1).float() + 1e-10))            # [nc]  future uncertainty
-    J = -C - H_next                                      # maximise
+    ce = compute_entropy(logits)  # [1, T]
+    C = torch.stack([ce[0, a].sum() for a in actions])  # [nc]  immediate cost
+    ne = compute_entropy(next_logits)  # [nc, T]
+    rm = x_batch == mask_id
+    H_next = torch.where(rm, ne, ne.new_zeros(1)).sum(-1) / (
+        rm.sum(-1).float() + 1e-10
+    )  # [nc]  future uncertainty
+    J = -C - H_next  # maximise
     return C, H_next, J

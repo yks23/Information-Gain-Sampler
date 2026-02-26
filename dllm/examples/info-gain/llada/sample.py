@@ -29,10 +29,10 @@ class SamplerConfig(dllm.pipelines.info_gain.llada.InfoGainLLaDASamplerConfig):
     block_size: int = 32
     temperature: float = 0.0
     remasking: str = "low_confidence"
-    use_cache: str = "prefix"         # "none", "prefix"
-    threshold: float = 0.9            # high-confidence bypass threshold
-    candidate_number: int = 8         # number of Info-Gain candidates
-    position_temperature: float = 0.1 # position sampling temperature
+    use_cache: str = "prefix"  # "none", "prefix"
+    threshold: float = 0.9  # high-confidence bypass threshold
+    candidate_number: int = 8  # number of Info-Gain candidates
+    position_temperature: float = 0.1  # position sampling temperature
     begin_suppress_tokens: list[int] = None
 
 
@@ -89,5 +89,5 @@ print(
     f"Total NFE:{len(outputs.histories) - 1}. Time taken for sampling: {end - start:.2f} seconds"
 )
 print(
-    f"Token speed: {(len(outputs.sequences[0])-len(inputs[0]))*1.0/(end - start):.2f} tokens/s"
+    f"Token speed: {(len(outputs.sequences[0]) - len(inputs[0])) * 1.0 / (end - start):.2f} tokens/s"
 )
