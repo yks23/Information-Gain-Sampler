@@ -1,0 +1,35 @@
+# requirements+.txt — combined dependencies for full repo (src/ + dllm/)
+#
+# Install:  pip install -r requirements+.txt
+
+# ── PyTorch (install separately if you need a specific CUDA version) ────────
+torch
+
+# ── Shared ──────────────────────────────────────────────────────────────────
+tqdm
+transformers>=4.49.0
+accelerate>=0.34.2
+peft>=0.17.1
+datasets>=4.2.0
+sentencepiece
+
+# ── src/ evaluation framework ──────────────────────────────────────────────
+lm_eval==0.4.8
+antlr4-python3-runtime==4.11
+math_verify
+sympy
+hf_xet
+seaborn
+
+# ── dllm/ sampler framework ───────────────────────────────────────────────
+deepspeed>=0.18.0
+torchmetrics
+tyro
+wandb
+omegaconf
+matplotlib
+rich
+
+# ── dev ────────────────────────────────────────────────────────────────────
+pytest
+ruff
