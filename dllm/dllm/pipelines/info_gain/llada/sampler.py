@@ -82,7 +82,7 @@ def _info_gain_select(
 
     # Score & select
     _, _, scores = score_candidates(logits, next_logits, xb, actions, mask_id, device)
-    best = scores.argmin().item()
+    best = scores.argmax().item()
     xo = x.clone(); xo[0, actions[best]] = x0s[best][0, actions[best]]
     return xo, scores[best].item(), next_logits[best:best + 1]
 

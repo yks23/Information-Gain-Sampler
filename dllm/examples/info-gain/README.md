@@ -83,6 +83,6 @@ At each denoising step:
 1. **High-confidence bypass**: If `threshold` is set and positions have top-1 probability ≥ threshold, directly fix those tokens (no lookahead needed).
 2. **Candidate generation**: Generate `candidate_number` diverse unmask actions. Each candidate independently samples tokens (Gumbel-max with `temperature`) and positions (Gumbel-perturbed top-k with `position_temperature`).
 3. **Lookahead evaluation**: Batch forward pass to compute $\bar{H}_{\text{next}}$ for each candidate.
-4. **Selection**: Select the candidate with the lowest $J(a) = C(a) + \bar{H}_{\text{next}}(a)$.
+4. **Selection**: Select the candidate with the highest $J(a) = \text{IG}(a) - C(a)$, equivalently $-C(a) - \bar{H}_{\text{next}}(a)$.
 5. **Logits caching**: The winning candidate's lookahead logits are reused as the base logits for the next step, saving one forward pass.
 6. **Last-step fast path**: When all remaining masks will be filled in one step, skip Info-Gain and sample directly.

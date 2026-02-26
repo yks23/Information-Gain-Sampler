@@ -1,20 +1,16 @@
 """
 Info-Gain Sampler — shared core.
 
-The original Info-Gain objective is:
+Objective (maximise):
 
-    J_IG(a) = IG(a) - C(a)    (maximise)
+    J(a) = IG(a) - C(a)
 
-where IG(a) = H(z_t) - H(z_{t-1}) is the information gain (state-uncertainty
-reduction) and C(a) is the immediate cost (entropy sum over chosen positions).
+where IG(a) = H(z_t) - H_next(a) is the information gain (reduction in mean
+entropy over remaining masked positions) and C(a) is the immediate cost
+(entropy sum over positions chosen by action a).
 
-Since H(z_t) is a constant w.r.t. action *a* at each step, maximising J_IG is
-equivalent to minimising:
-
-    J(a) = C(a) + H_next(a)
-
-where H_next(a) is the mean entropy over remaining masked positions after
-applying *a*.  The code uses this simplified form.
+H(z_t) is constant w.r.t. *a*, so this is equivalently: maximise -C(a) - H_next(a),
+i.e. the candidate with the highest J wins.
 """
 
 import torch
@@ -118,15 +114,16 @@ def generate_candidates(
 
 def score_candidates(logits, next_logits, x_batch, actions, mask_id, device):
     """
-    Compute Info-Gain scores for a batch of candidate next-states.
+    Compute ``J(a) = IG(a) - C(a)`` for each candidate (higher is better).
 
-    ``score = action_entropy + next_avg_entropy`` (lower is better).
+    Returns ``(C, H_next, J)`` where ``J = -C - H_next`` (since IG = H_cur - H_next
+    and H_cur is constant, maximising IG - C ≡ maximising -C - H_next).
     """
-    nc = len(actions)
     ce = compute_entropy(logits)                         # [1, T]
-    ae = torch.stack([ce[0, a].sum() for a in actions])  # [nc]
+    C = torch.stack([ce[0, a].sum() for a in actions])   # [nc]  immediate cost
     ne = compute_entropy(next_logits)                    # [nc, T]
     rm = (x_batch == mask_id)
-    na = (torch.where(rm, ne, ne.new_zeros(1)).sum(-1)
-          / (rm.sum(-1).float() + 1e-10))                # [nc]
-    return ae, na, ae + na
+    H_next = (torch.where(rm, ne, ne.new_zeros(1)).sum(-1)
+              / (rm.sum(-1).float() + 1e-10))            # [nc]  future uncertainty
+    J = -C - H_next                                      # maximise
+    return C, H_next, J
