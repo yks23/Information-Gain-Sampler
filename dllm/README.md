@@ -73,6 +73,7 @@ Simple Diffusion Language Modeling
 
    </details> -->
 - [`examples/fastdllm`](/examples/fastdllm): Inferencing and evaluating [LLaDA](https://arxiv.org/abs/2502.09992) and [Dream](https://arxiv.org/abs/2508.15487) with [Fast-dLLM](https://arxiv.org/abs/2505.22618) (cache, confidence-threshold decoding, and beyond).
+- [`examples/info-gain`](/examples/info-gain): Inferencing and evaluating [LLaDA](https://arxiv.org/abs/2502.09992) and [Dream](https://arxiv.org/abs/2508.15487) with **Info-Gain** / **LookUM** samplers (lookahead-based decoding with information-gain maximisation).
 - More upcoming.
 
 
@@ -94,12 +95,16 @@ pip install -e .
 ### (optional) Evaluation setup
 
 ```bash
-# initialize `lm-evaluation-harness` submodule
-git submodule update --init --recursive
+# clone the dllm-customised lm-evaluation-harness (with custom tasks)
+git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
 
-# install submodule in editable mode with IFEval & Math dependencies
+# install in editable mode with IFEval & Math dependencies
 pip install -e "lm-evaluation-harness[ifeval,math]"
 ```
+
+> **Note**: If you are using this repository as a directory inside another project
+> (not as a standalone git repo), the original `git submodule` approach won't work.
+> Use the `git clone` command above instead.
 
 ### (optional) Slurm setup
 For [Slurm](https://slurm.schedmd.com/) users, update [`scripts/train.slurm.sh`](/scripts/train.slurm.sh) for your cluster:
@@ -125,10 +130,18 @@ dllm
 │   └── trainers
 ├── data
 ├── pipelines              # Application-specific training & inference pipelines
-|   ├── bert
+│   ├── bert
 │   ├── dream
 │   ├── editflow
 │   ├── fastdllm
+│   ├── info_gain          # ★ Info-Gain / LookUM sampler pipelines
+│   │   ├── core.py        #   Shared algorithm: entropy, candidate generation, IG scoring
+│   │   ├── llada/
+│   │   │   ├── sampler.py #   LLaDA sampler (none / prefix / dual cache)
+│   │   │   └── eval.py    #   lm-eval harness integration
+│   │   └── dream/
+│   │       ├── sampler.py #   Dream sampler (none / prefix / dual cache)
+│   │       └── eval.py    #   lm-eval harness integration
 │   └── llada
 │       ├── models         # Model architecture and configs 
 │       ├── sampler.py     # Inference module
@@ -143,11 +156,19 @@ examples
 ├── dream
 ├── editflow
 ├── fastdllm
+├── info-gain              # ★ Info-Gain / LookUM examples
+│   ├── README.md          #   Documentation, algorithm, parameters
+│   ├── llada/
+│   │   ├── sample.py      #   Inference example
+│   │   └── eval.sh        #   Benchmark evaluation script
+│   └── dream/
+│       ├── sample.py      #   Inference example
+│       └── eval.sh        #   Benchmark evaluation script
 └── llada
     ├── chat.py            # Interactive inference example
     ├── sample.py          # Inference example
     ├── pt.py              # Pretraining example
-    ├── README.md          # Documentation (you are here)
+    ├── README.md          # Documentation
     ├── sft.py             # Supervised finetuning example
     └── eval.sh            # Evaluation script
 ```
@@ -298,6 +319,22 @@ You can accelerate inference of [LLaDA](https://arxiv.org/abs/2502.09992) and [D
 python examples/fastdllm/llada/sample.py --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" --use_cache prefix --threshold 0.9
 ```
 
+You can use **Info-Gain** or **LookUM** samplers for lookahead-based decoding that maximises information gain:
+```shell
+# Info-Gain (default): J = IG(a) - C(a)
+python examples/info-gain/llada/sample.py --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" \
+    --variant info_gain --use_cache prefix --threshold 0.9 --candidate_number 8
+
+# LookUM: J = IG(a), drops the immediate cost term
+python examples/info-gain/llada/sample.py --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" \
+    --variant lookum --use_cache prefix --threshold 0.9 --candidate_number 8
+
+# Dream model
+python examples/info-gain/dream/sample.py --model_name_or_path "Dream-org/Dream-v0-Instruct-7B" \
+    --variant info_gain --use_cache prefix --threshold 0.9 --candidate_number 8
+```
+See [`examples/info-gain/README.md`](/examples/info-gain/README.md) for full parameter documentation.
+
 <p align="center">
     <img src="/assets/chat.gif" alt="chat" width="80%">
 </p>
@@ -329,6 +366,18 @@ We provide scripts to evaluate [LLaDA](https://arxiv.org/abs/2502.09992) and [Dr
 bash examples/fastdllm/llada/eval.sh --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" --instruct True --num_gpu 1
 bash examples/fastdllm/dream/eval.sh --model_name_or_path "Dream-org/Dream-v0-Base-7B" --instruct False --num_gpu 1
 ```
+
+We provide scripts to evaluate with **Info-Gain** / **LookUM** samplers (GSM8K, MATH, HumanEval, MBPP):
+```shell
+# LLaDA with Info-Gain / LookUM (runs all 4 tasks)
+bash examples/info-gain/llada/eval.sh --variant info_gain --num_gpu 4
+bash examples/info-gain/llada/eval.sh --variant lookum --num_gpu 4
+
+# Dream with Info-Gain / LookUM
+bash examples/info-gain/dream/eval.sh --variant info_gain --num_gpu 4
+bash examples/info-gain/dream/eval.sh --variant lookum --num_gpu 4
+```
+All parameters (cache mode, threshold, candidate_number, etc.) can be overridden via flags. See [`examples/info-gain/README.md`](/examples/info-gain/README.md) for details.
 
 
 ## Citation
