@@ -1,29 +1,24 @@
 #!/usr/bin/env python3
 """
-Pre-download evaluation datasets into the HuggingFace cache.
-
-This ensures lm-evaluation-harness can load datasets offline.
-Datasets are cached in the same location that `datasets.load_dataset()` uses,
-so no extra configuration is needed at eval time.
+Pre-download evaluation datasets for offline use.
 
 Usage:
-    # On a machine WITH internet:
+    # Download to default HF cache
     python scripts/prepare_eval_data.py
 
-    # Then on the eval machine (can be offline):
-    export HF_DATASETS_OFFLINE=1
-    bash examples/info-gain/llada/eval.sh
+    # Download to a specific local directory (recommended for portability)
+    python scripts/prepare_eval_data.py --local_dir ./eval_data
 
-    # If the cache is at a non-default location, set it consistently:
-    export HF_DATASETS_CACHE=/path/to/cache
-    python scripts/prepare_eval_data.py          # download
-    export HF_DATASETS_OFFLINE=1                 # then eval
+    # Then run eval pointing to the same directory:
+    #   export HF_DATASETS_CACHE=./eval_data
+    #   export HF_DATASETS_OFFLINE=1
+    #   bash examples/info-gain/llada/eval.sh
 """
 
 import os
+import sys
+import argparse
 
-# Dataset definitions: (hub_path, subset)
-# These MUST match the dataset_path / dataset_name in lm-eval task YAMLs.
 DATASETS = {
     "gsm8k":        ("openai/gsm8k", "main"),
     "mbpp":         ("google-research-datasets/mbpp", "full"),
@@ -38,51 +33,82 @@ DATASETS = {
 }
 
 
+def try_cache(path, subset):
+    """Try loading from cache only (no network)."""
+    from datasets import load_dataset
+    old_offline = os.environ.get("HF_DATASETS_OFFLINE")
+    old_hub = os.environ.get("HF_HUB_OFFLINE")
+    os.environ["HF_DATASETS_OFFLINE"] = "1"
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    try:
+        return load_dataset(path, subset)
+    except Exception:
+        return None
+    finally:
+        # Restore original values
+        for key, old_val in [("HF_DATASETS_OFFLINE", old_offline), ("HF_HUB_OFFLINE", old_hub)]:
+            if old_val is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = old_val
+
+
 def main():
-    from datasets import config, load_dataset
+    parser = argparse.ArgumentParser(description="Download evaluation datasets")
+    parser.add_argument("--local_dir", type=str, default=None,
+                        help="Download datasets to this directory. "
+                             "Use the same path as HF_DATASETS_CACHE when running eval.")
+    args = parser.parse_args()
 
-    cache_dir = os.environ.get("HF_DATASETS_CACHE", config.HF_DATASETS_CACHE)
-    print(f"Cache directory: {cache_dir}")
-    print(f"Downloading {len(DATASETS)} dataset(s)...\n")
+    if args.local_dir:
+        abs_dir = os.path.abspath(args.local_dir)
+        os.makedirs(abs_dir, exist_ok=True)
+        os.environ["HF_DATASETS_CACHE"] = abs_dir
+        print(f"Download directory: {abs_dir}")
+    else:
+        from datasets import config
+        abs_dir = os.environ.get("HF_DATASETS_CACHE", config.HF_DATASETS_CACHE)
+        print(f"Using default HF cache: {abs_dir}")
 
-    # De-duplicate by (path, subset) to avoid downloading the same repo multiple times
+    print()
+
     seen = set()
     for name, (path, subset) in sorted(DATASETS.items()):
         key = (path, subset)
         if key in seen:
             continue
         seen.add(key)
-
         label = f"{path}" + (f" [{subset}]" if subset else "")
 
         # Check cache first
-        os.environ["HF_DATASETS_OFFLINE"] = "1"
-        try:
-            ds = load_dataset(path, subset)
-            total = sum(len(s) for s in ds.values())
-            print(f"  ✓ {label:50s} {total} examples (cached)")
-            os.environ.pop("HF_DATASETS_OFFLINE", None)
+        ds = try_cache(path, subset)
+        if ds is not None:
+            n = sum(len(s) for s in ds.values())
+            print(f"  ✓ {label:55s} {n:>5d} examples (cached)")
             continue
-        except Exception:
-            pass
-        os.environ.pop("HF_DATASETS_OFFLINE", None)
 
         # Download
         print(f"  ↓ {label} ...")
         try:
+            from datasets import load_dataset
             ds = load_dataset(path, subset)
-            total = sum(len(s) for s in ds.values())
-            splits = ", ".join(f"{k}={len(v)}" for k, v in ds.items())
-            print(f"  ✓ {total} examples ({splits})")
+            n = sum(len(s) for s in ds.values())
+            print(f"  ✓ {label:55s} {n:>5d} examples (downloaded)")
         except Exception as e:
-            print(f"  ✗ {e}")
-        print()
+            err = str(e).split('\n')[0][:80]
+            print(f"  ✗ {label}: {err}")
 
-    print("Done.")
     print()
-    print("To run evaluation offline, set before eval commands:")
-    print(f"  export HF_DATASETS_CACHE={cache_dir}")
+    print("=" * 60)
+    print("To run evaluation with these datasets:")
+    print()
+    print(f"  export HF_DATASETS_CACHE={abs_dir}")
     print("  export HF_DATASETS_OFFLINE=1")
+    print("  export HF_ALLOW_CODE_EVAL=1")
+    print()
+    print("  cd dllm/")
+    print("  bash examples/info-gain/llada/eval.sh --variant info_gain")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
