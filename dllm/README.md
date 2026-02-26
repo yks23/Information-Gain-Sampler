@@ -108,19 +108,21 @@ pip install -e "lm-evaluation-harness[ifeval,math]"
 
 ### (optional) Download evaluation datasets
 
-If your machine has limited internet access, pre-download datasets for offline evaluation:
+If your eval machine has limited internet access, pre-download datasets on a machine with internet:
 ```bash
-# download all evaluation datasets (GSM8K, MBPP, HumanEval, MATH)
+# download all evaluation datasets (GSM8K, MBPP, HumanEval, MATH) into HF cache
 python scripts/prepare_eval_data.py
 
-# or download specific tasks
-python scripts/prepare_eval_data.py --tasks gsm8k humaneval
+# if using a non-default cache location, set it BEFORE downloading:
+export HF_DATASETS_CACHE=/path/to/shared/cache
+python scripts/prepare_eval_data.py
+```
 
-# or download to a custom directory
-python scripts/prepare_eval_data.py --data_dir ./eval_data
-
-# then run evaluation with offline mode
+Then on the eval machine, set the same cache path and enable offline mode:
+```bash
+export HF_DATASETS_CACHE=/path/to/shared/cache   # must match download location
 export HF_DATASETS_OFFLINE=1
+bash examples/info-gain/llada/eval.sh
 ```
 
 ### (optional) Slurm setup
