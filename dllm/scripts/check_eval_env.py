@@ -114,6 +114,32 @@ def check_info_gain_pipeline():
     return all_ok
 
 
+def _try_load(path, subset):
+    """Try loading dataset: cache first, then online."""
+    from datasets import load_dataset
+
+    # 1) Try cache only (no network)
+    old_offline = os.environ.get("HF_DATASETS_OFFLINE")
+    os.environ["HF_DATASETS_OFFLINE"] = "1"
+    try:
+        ds = load_dataset(path, subset)
+        return ds, "cached"
+    except Exception:
+        pass
+    finally:
+        if old_offline is None:
+            os.environ.pop("HF_DATASETS_OFFLINE", None)
+        else:
+            os.environ["HF_DATASETS_OFFLINE"] = old_offline
+
+    # 2) Try online
+    try:
+        ds = load_dataset(path, subset)
+        return ds, "downloaded"
+    except Exception as e:
+        return None, str(e).split('\n')[0][:80]
+
+
 def check_datasets(fix=False):
     section("4. Evaluation datasets")
 
@@ -131,16 +157,13 @@ def check_datasets(fix=False):
 
     all_ok = True
     for path, subset, label in datasets_to_check:
-        try:
-            from datasets import load_dataset
-            ds = load_dataset(path, subset)
+        ds, status = _try_load(path, subset)
+        if ds is not None:
             n = sum(len(s) for s in ds.values())
-            print(f"  {check_mark(True)} {label:30s} {n} examples")
-        except Exception as e:
-            err = str(e).split('\n')[0][:80]
-            print(f"  {check_mark(False)} {label:30s} {err}")
+            print(f"  {check_mark(True)} {label:30s} {n} examples ({status})")
+        else:
+            print(f"  {check_mark(False)} {label:30s} not in cache")
             all_ok = False
-
             if fix:
                 print(f"       Downloading {path} ...")
                 try:
@@ -148,8 +171,10 @@ def check_datasets(fix=False):
                     ds = load_dataset(path, subset)
                     n = sum(len(s) for s in ds.values())
                     print(f"       {check_mark(True)} Downloaded: {n} examples")
+                    all_ok = True  # fixed
                 except Exception as e2:
-                    print(f"       {check_mark(False)} Download failed: {e2}")
+                    err = str(e2).split('\n')[0][:80]
+                    print(f"       {check_mark(False)} Failed: {err}")
 
     if not all_ok and not fix:
         print()

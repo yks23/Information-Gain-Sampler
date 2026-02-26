@@ -54,7 +54,21 @@ def main():
         seen.add(key)
 
         label = f"{path}" + (f" [{subset}]" if subset else "")
-        print(f"  {label} ...")
+
+        # Check cache first
+        os.environ["HF_DATASETS_OFFLINE"] = "1"
+        try:
+            ds = load_dataset(path, subset)
+            total = sum(len(s) for s in ds.values())
+            print(f"  ✓ {label:50s} {total} examples (cached)")
+            os.environ.pop("HF_DATASETS_OFFLINE", None)
+            continue
+        except Exception:
+            pass
+        os.environ.pop("HF_DATASETS_OFFLINE", None)
+
+        # Download
+        print(f"  ↓ {label} ...")
         try:
             ds = load_dataset(path, subset)
             total = sum(len(s) for s in ds.values())
