@@ -137,3 +137,6 @@ dmypy.json
 /wandb/
 /.logs/
 /.models/
+
+# lm-evaluation-harness (clone separately, see README)
+/lm-evaluation-harness/
