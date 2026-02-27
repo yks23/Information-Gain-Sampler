@@ -4,6 +4,20 @@
 
 一个统一的解码框架，用于掩码扩散模型（MDMs），结合轨迹规划与信息增益最大化。本仓库提供了 **Info-Gain Sampler** 的实现，这是一个灵活的解码策略，支持多种启发式函数，可适应各种生成任务。
 
+> **注意**：本仓库正在积极开发中，用于持续实验，尚未完全整理。我们还提供了 [dllm](https://github.com/ZHZisZZ/dllm) 框架的适配版本。`dllm/` 目录是一个 Git 子模块，包含我们集成到 dllm 框架中的 Info-Gain 采样器实现。
+
+**初始化子模块：**
+
+```bash
+# 克隆仓库时包含子模块
+git clone --recurse-submodules git@github.com:yks23/Information-Gain-Sampler.git
+
+# 或者如果已经克隆了仓库，初始化子模块
+git submodule update --init --recursive
+```
+
+然后可以进入 `dllm/` 目录，参照 [`dllm/README.md`](dllm/README.md) 使用 dllm 框架集成版本。
+
 ## 目录
 
 - [动机](#动机)

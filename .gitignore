@@ -51,9 +51,13 @@ logs/
 *.pth
 *.ckpt
 model/
-models/
+/models/
 checkpoints/
 pretrained_models/
+
+# But keep dllm pipeline model packages
+!dllm/dllm/pipelines/**/models/
+!dllm/dllm/pipelines/**/models/**
 
 # Results and outputs
 results/
