@@ -6,26 +6,93 @@ A unified decoding framework for Masked Diffusion Models (MDMs) that combines tr
 
 > **Note**: This repository is under active development for ongoing experiments and has not been fully cleaned up. The `dllm/` directory is an integration sub-repository based on [dllm](https://github.com/ZHZisZZ/dllm), containing our Info-Gain / LookUM sampler pipelines that plug into the dllm framework.
 
+## Sampling Variants
+
+| Variant | Objective (maximise) | Description |
+|---------|---------------------|-------------|
+| **Info-Gain** | $J = \text{IG}(a) - C(a)$ | Balances information gain with immediate cost |
+| **LookUM** | $J = \text{IG}(a)$ | Pure future uncertainty reduction (drops $C$) |
+
 ## Repository Structure
+
+This repo provides **two evaluation paths**:
 
 ```
 Information-Gain-Sampler/
-├── src/                            # Original evaluation framework
-│   ├── generators/                 # Generation algorithms (base, info_gain, eb_sampler, fast_dllm)
+│
+├── src/                            # ── Path A: standalone evaluation framework ──
+│   ├── generators/                 # Info-Gain, LookUM, PC-Sampler, EB-Sampler, Fast-dLLM
+│   │   ├── info_gain.py            #   ★ Info-Gain & LookUM (variant param)
+│   │   └── base.py                 #   Core generate() with KV-cache, block, bypass
 │   ├── prompts/                    # Task prompt templates
 │   ├── utils/                      # Evaluation utilities
 │   └── benchmarks/                 # Benchmark tasks (text & multimodal)
-├── scripts/                        # Evaluation entry points (eval.py, Eval.sh, etc.)
-├── dllm/                           # Integration with github.com/ZHZisZZ/dllm
-│   ├── dllm/pipelines/info_gain/   # ★ Info-Gain & LookUM sampler pipelines
-│   │   ├── core.py                 #   Shared algorithm core
-│   │   ├── llada/sampler.py        #   LLaDA sampler (none/prefix/dual cache)
-│   │   └── dream/sampler.py        #   Dream sampler (none/prefix/dual cache)
-│   └── examples/info-gain/         # ★ Inference examples for LLaDA & Dream
+├── scripts/                        # eval.py, Eval.sh (path A entry points)
+│
+├── dllm/                           # ── Path B: dllm framework integration ──
+│   ├── dllm/pipelines/info_gain/   #   ★ Info-Gain & LookUM sampler pipelines
+│   │   ├── core.py                 #     Shared: entropy, candidates, scoring
+│   │   ├── llada/                  #     LLaDA (sampler.py + eval.py)
+│   │   └── dream/                  #     Dream  (sampler.py + eval.py)
+│   ├── examples/info-gain/         #   Inference + eval scripts
+│   ├── scripts/                    #   prepare_eval_data.py, check_eval_env.py
+│   └── README.md                   #   Full setup & usage guide
+│
 ├── data/                           # Baseline frequency files (gitignored)
 ├── model/                          # Model weights (gitignored)
-└── README.md
+├── requirements.txt                # Dependencies for path A (src/)
+└── requirements+.txt               # Combined dependencies (src/ + dllm/)
 ```
+
+### Which path to use?
+
+| | Path A (`src/`) | Path B (`dllm/`) |
+|---|---|---|
+| **Models** | Requires `src/models/` adapter package | Uses dllm's model loading (HuggingFace) |
+| **Eval harness** | Custom `scripts/eval.py` | `lm-evaluation-harness` (standardised) |
+| **Supported models** | LLaDA, Dream, SDAR, TraDo, MMaDA | LLaDA, Dream |
+| **Cache modes** | KV-cache (prefix) | none / prefix / dual |
+| **Install** | `pip install -r requirements.txt` | See `dllm/README.md` |
+
+**Recommended**: Use **Path B** (`dllm/`) for LLaDA / Dream evaluation with standardised benchmarks (GSM8K, MATH, HumanEval, MBPP).
+
+## dllm Evaluation Quick Start
+
+```bash
+cd dllm/
+
+# 1. Install
+pip install -e .
+git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
+pip install -e "lm-evaluation-harness[ifeval,math]"
+
+# 2. Download data
+python scripts/prepare_eval_data.py --local_dir ./eval_data
+
+# 3. Verify
+python scripts/check_eval_env.py
+
+# 4. Run (GSM8K example)
+export HF_DATASETS_CACHE=./eval_data && export HF_DATASETS_OFFLINE=1 && export HF_ALLOW_CODE_EVAL=1
+
+# Info-Gain on LLaDA
+accelerate launch --num_processes 1 dllm/pipelines/info_gain/llada/eval.py \
+    --tasks gsm8k --num_fewshot 5 --model info_gain_llada --apply_chat_template \
+    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,variant=info_gain,use_cache=prefix,threshold=0.9,candidate_number=8,position_temperature=0.1,max_new_tokens=256,steps=256,block_size=32,suppress_tokens=[],begin_suppress_tokens=[]"
+
+# LookUM on LLaDA (change variant only)
+accelerate launch --num_processes 1 dllm/pipelines/info_gain/llada/eval.py \
+    --tasks gsm8k --num_fewshot 5 --model info_gain_llada --apply_chat_template \
+    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,variant=lookum,use_cache=prefix,threshold=0.9,candidate_number=8,position_temperature=0.1,max_new_tokens=256,steps=256,block_size=32,suppress_tokens=[],begin_suppress_tokens=[]"
+
+# One-click eval (all tasks: GSM8K + MATH + HumanEval + MBPP)
+bash examples/info-gain/llada/eval.sh --variant info_gain --num_gpu 4
+bash examples/info-gain/llada/eval.sh --variant lookum --num_gpu 4
+bash examples/info-gain/dream/eval.sh --variant info_gain --num_gpu 4
+bash examples/info-gain/dream/eval.sh --variant lookum --num_gpu 4
+```
+
+See [`dllm/README.md`](dllm/README.md) for full documentation.
 
 ## Table of Contents
 

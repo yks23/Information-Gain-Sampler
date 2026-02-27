@@ -305,6 +305,7 @@ def generate(
     dynamic_threshold=None,
     use_kv_cache=False,
     use_block_causal_mask=False,
+    variant="info_gain",
 ):
     """
     Main generation loop (PC-Sampler / Info-Gain / High-Confidence Bypass).
@@ -600,6 +601,8 @@ def generate(
                     kv_cache=kv_cache,
                     kv_committed_len=kv_committed_len,
                     block_causal_4d=block_causal_4d,
+                    temperature=temperature,
+                    variant=variant,
                 )
 
                 new_candidates.append(best_child)

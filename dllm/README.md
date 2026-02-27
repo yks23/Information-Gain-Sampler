@@ -78,51 +78,52 @@ Simple Diffusion Language Modeling
 
 
 ## Setup
-### Installation
+
+### Step 1: Basic installation
 ```bash
-# create and activate conda environment
-conda create -n dllm python=3.10 -y
-conda activate dllm
+conda create -n dllm python=3.10 -y && conda activate dllm
 
-# install pytorch with CUDA 12.4 (other pytorch/cuda versions should also work)
-conda install cuda=12.4 -c nvidia
-pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
-    --index-url https://download.pytorch.org/whl/cu124
+# PyTorch (adjust CUDA version as needed)
+pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
 
-# install dllm package
+# dllm
 pip install -e .
 ```
-### (optional) Evaluation setup
 
+### Step 2: Evaluation setup (for GSM8K, MATH, HumanEval, MBPP)
 ```bash
-# clone the dllm-customised lm-evaluation-harness (with custom tasks)
+# The dllm-fork of lm-evaluation-harness contains custom task definitions.
+# Standard `pip install lm_eval` does NOT have these tasks.
 git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
-
-# install in editable mode with IFEval & Math dependencies
 pip install -e "lm-evaluation-harness[ifeval,math]"
 ```
 
-> **Note**: If you are using this repository as a directory inside another project
-> (not as a standalone git repo), the original `git submodule` approach won't work.
-> Use the `git clone` command above instead.
+> **Note**: If using dllm as a directory inside another project (not a standalone git repo),
+> use `git clone` above instead of `git submodule update`.
 
-### (optional) Download evaluation datasets
-
-If your eval machine has limited internet access, pre-download datasets on a machine with internet:
+### Step 3: Download evaluation datasets
 ```bash
-# download all evaluation datasets (GSM8K, MBPP, HumanEval, MATH) into HF cache
-python scripts/prepare_eval_data.py
+# Download to a local directory (recommended for portability)
+python scripts/prepare_eval_data.py --local_dir ./eval_data
 
-# if using a non-default cache location, set it BEFORE downloading:
-export HF_DATASETS_CACHE=/path/to/shared/cache
+# Or download to default HF cache
 python scripts/prepare_eval_data.py
 ```
 
-Then on the eval machine, set the same cache path and enable offline mode:
+### Step 4: Verify everything
 ```bash
-export HF_DATASETS_CACHE=/path/to/shared/cache   # must match download location
+python scripts/check_eval_env.py        # check-only
+python scripts/check_eval_env.py --fix  # check + auto-download missing data
+```
+
+### Running evaluation offline
+```bash
+# Point to the same directory used in Step 3
+export HF_DATASETS_CACHE=./eval_data    # or your custom path
 export HF_DATASETS_OFFLINE=1
-bash examples/info-gain/llada/eval.sh
+export HF_ALLOW_CODE_EVAL=1
+
+bash examples/info-gain/llada/eval.sh --variant info_gain
 ```
 
 ### (optional) Slurm setup

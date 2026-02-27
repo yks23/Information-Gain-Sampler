@@ -25,6 +25,7 @@ from .info_gain import (
     compute_entropy_info_gain,
     _lookahead_with_kv_cache,
     generate_with_info_gain,
+    generate_with_lookum,
 )
 from .eb_sampler import generate_with_eb_sampler
 from .fast_dllm import generate_with_fast_dllm, get_transfer_index_dynamic
