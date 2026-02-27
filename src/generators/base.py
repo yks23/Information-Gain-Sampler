@@ -334,7 +334,8 @@ def generate(
     from src.generators.info_gain import beam_search_expand_candidate
 
     global BASE_LINE
-    load_baseline(model, baseline_name)
+    if baseline_name is not None:
+        load_baseline(model, baseline_name)
 
     device = model.device
 
