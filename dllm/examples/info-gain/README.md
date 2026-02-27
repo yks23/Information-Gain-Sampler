@@ -56,32 +56,62 @@ examples/info-gain
     └── sample.py
 ```
 
+## Supported Models
+
+| Model | Type | HuggingFace | `--model_type` | Sample script |
+|-------|------|-------------|----------------|---------------|
+| LLaDA | Full-attention MDM | `GSAI-ML/LLaDA-8B-Instruct` | `llada` (default) | `llada/sample.py` |
+| SDAR | Semi-AR MDM | `JetLM/SDAR-8B-Chat` | `sdar` | `llada/sample.py` |
+| TraDo | Semi-AR MDM | `Gen-Verse/TraDo-8B-Instruct` | `trado` | `llada/sample.py` |
+| Dream | Full-attention MDM | `Dream-org/Dream-v0-Instruct-7B` | — | `dream/sample.py` |
+
+> SDAR and TraDo share the LLaDA architecture. They use the same sampler and eval harness.
+
 ## Inference
 
-Info-Gain (default):
-
 ```shell
+# LLaDA × Info-Gain
 python examples/info-gain/llada/sample.py \
     --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" \
-    --use_cache prefix --threshold 0.9 \
-    --candidate_number 8 --position_temperature 0.1
+    --variant info_gain --use_cache prefix --threshold 0.9
 
+# LLaDA × LookUM
+python examples/info-gain/llada/sample.py \
+    --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" \
+    --variant lookum --use_cache prefix --threshold 0.9
+
+# SDAR × Info-Gain (same script, different model)
+python examples/info-gain/llada/sample.py \
+    --model_name_or_path "JetLM/SDAR-8B-Chat" \
+    --variant info_gain --use_cache prefix --threshold 0.9
+
+# TraDo × Info-Gain
+python examples/info-gain/llada/sample.py \
+    --model_name_or_path "Gen-Verse/TraDo-8B-Instruct" \
+    --variant info_gain --use_cache prefix --threshold 0.9
+
+# Dream × Info-Gain
 python examples/info-gain/dream/sample.py \
     --model_name_or_path "Dream-org/Dream-v0-Instruct-7B" \
-    --use_cache prefix --threshold 0.9 \
-    --candidate_number 8 --position_temperature 0.1
+    --variant info_gain --use_cache prefix --threshold 0.9
 ```
 
-LookUM (add `--variant lookum`):
+## Evaluation
 
 ```shell
-python examples/info-gain/llada/sample.py \
-    --model_name_or_path "GSAI-ML/LLaDA-8B-Instruct" \
-    --variant lookum --use_cache prefix --threshold 0.9
+# LLaDA (default)
+bash examples/info-gain/llada/eval.sh --variant info_gain --num_gpu 4
+bash examples/info-gain/llada/eval.sh --variant lookum --num_gpu 4
 
-python examples/info-gain/dream/sample.py \
-    --model_name_or_path "Dream-org/Dream-v0-Instruct-7B" \
-    --variant lookum --use_cache prefix --threshold 0.9
+# SDAR
+bash examples/info-gain/llada/eval.sh --model_name_or_path JetLM/SDAR-8B-Chat --model_type sdar --num_gpu 4
+
+# TraDo
+bash examples/info-gain/llada/eval.sh --model_name_or_path Gen-Verse/TraDo-8B-Instruct --model_type trado --num_gpu 4
+
+# Dream
+bash examples/info-gain/dream/eval.sh --variant info_gain --num_gpu 4
+bash examples/info-gain/dream/eval.sh --variant lookum --num_gpu 4
 ```
 
 ## Key Parameters

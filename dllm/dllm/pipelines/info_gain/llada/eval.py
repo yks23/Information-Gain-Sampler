@@ -1,9 +1,21 @@
 """
-accelerate launch --num_processes 4 \
-    dllm/pipelines/info_gain/llada/eval.py \
-    --tasks gsm8k --num_fewshot 5 \
-    --model info_gain_llada --apply_chat_template \
-    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.9,candidate_number=8,position_temperature=0.1,variant=info_gain,max_new_tokens=256,steps=256,block_size=32,suppress_tokens=[],begin_suppress_tokens=[]"
+Info-Gain / LookUM evaluation for LLaDA-architecture models (LLaDA, SDAR, TraDo).
+
+Usage:
+    # LLaDA
+    accelerate launch --num_processes 4 dllm/pipelines/info_gain/llada/eval.py \
+        --tasks gsm8k --num_fewshot 5 --model info_gain_llada --apply_chat_template \
+        --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,variant=info_gain,..."
+
+    # SDAR (same eval harness, different --model and pretrained)
+    accelerate launch --num_processes 4 dllm/pipelines/info_gain/llada/eval.py \
+        --tasks gsm8k --num_fewshot 5 --model info_gain_sdar --apply_chat_template \
+        --model_args "pretrained=JetLM/SDAR-8B-Chat,variant=info_gain,..."
+
+    # TraDo
+    accelerate launch --num_processes 4 dllm/pipelines/info_gain/llada/eval.py \
+        --tasks gsm8k --num_fewshot 5 --model info_gain_trado --apply_chat_template \
+        --model_args "pretrained=Gen-Verse/TraDo-8B-Instruct,variant=info_gain,..."
 """
 
 from dataclasses import dataclass
@@ -34,23 +46,26 @@ class InfoGainLLaDAEvalConfig(MDLMEvalConfig):
         return InfoGainLLaDAConfig.from_pretrained(pretrained)
 
 
-@register_model("info_gain_llada")
-class InfoGainLLaDAEvalHarness(MDLMEvalHarness):
-    def __init__(
-        self,
-        eval_config: InfoGainLLaDAEvalConfig | None = None,
-        sampler_config: InfoGainLLaDASamplerConfig | None = None,
-        sampler_cls: type[InfoGainLLaDASampler] = InfoGainLLaDASampler,
-        **kwargs,
-    ):
-        eval_config = eval_config or InfoGainLLaDAEvalConfig()
-        sampler_config = sampler_config or InfoGainLLaDAEvalSamplerConfig()
-        super().__init__(
-            eval_config=eval_config,
-            sampler_config=sampler_config,
-            sampler_cls=sampler_cls,
-            **kwargs,
-        )
+# SDAR and TraDo use the same LLaDA architecture — same config, sampler, and eval harness.
+# We register separate model names so lm-eval can distinguish them in results.
+
+def _make_harness(model_name: str):
+    @register_model(model_name)
+    class _Harness(MDLMEvalHarness):
+        def __init__(self, eval_config=None, sampler_config=None,
+                     sampler_cls=InfoGainLLaDASampler, **kwargs):
+            super().__init__(
+                eval_config=eval_config or InfoGainLLaDAEvalConfig(),
+                sampler_config=sampler_config or InfoGainLLaDAEvalSamplerConfig(),
+                sampler_cls=sampler_cls, **kwargs,
+            )
+    _Harness.__name__ = _Harness.__qualname__ = f"InfoGain_{model_name}_EvalHarness"
+    return _Harness
+
+
+InfoGainLLaDAEvalHarness = _make_harness("info_gain_llada")
+InfoGainSDAREvalHarness = _make_harness("info_gain_sdar")
+InfoGainTraDoEvalHarness = _make_harness("info_gain_trado")
 
 
 if __name__ == "__main__":
