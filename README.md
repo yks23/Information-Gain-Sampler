@@ -4,14 +4,7 @@
 
 A unified decoding framework for Masked Diffusion Models (MDMs) that combines trajectory planning with information-gain maximization. This repository provides an implementation of the **Info-Gain Sampler**, a flexible decoding strategy that supports multiple heuristic functions and can adapt to various generation tasks.
 
-> **Note**: This repository is under active development for ongoing experiments and has not been fully cleaned up. The `dllm/` directory is an integration sub-repository based on [dllm](https://github.com/ZHZisZZ/dllm), containing our Info-Gain / LookUM sampler pipelines that plug into the dllm framework.
-
-## Sampling Variants
-
-| Variant | Objective (maximise) | Description |
-|---------|---------------------|-------------|
-| **Info-Gain** | $J = \text{IG}(a) - C(a)$ | Balances information gain with immediate cost |
-| **LookUM** | $J = \text{IG}(a)$ | Pure future uncertainty reduction (drops $C$) |
+> **Note**: This repository is under active development for ongoing experiments and has not been fully cleaned up. The `dllm/` directory is an integration sub-repository based on [dllm](https://github.com/ZHZisZZ/dllm), containing our Info-Gain sampler pipelines that plug into the dllm framework.
 
 ## Repository Structure
 
@@ -21,8 +14,8 @@ This repo provides **two evaluation paths**:
 Information-Gain-Sampler/
 │
 ├── src/                            # ── Path A: standalone evaluation framework ──
-│   ├── generators/                 # Info-Gain, LookUM, PC-Sampler, EB-Sampler, Fast-dLLM
-│   │   ├── info_gain.py            #   ★ Info-Gain & LookUM (variant param)
+│   ├── generators/                 # Info-Gain, PC-Sampler, EB-Sampler, Fast-dLLM
+│   │   ├── info_gain.py            #   ★ Info-Gain sampler
 │   │   └── base.py                 #   Core generate() with KV-cache, block, bypass
 │   ├── prompts/                    # Task prompt templates
 │   ├── utils/                      # Evaluation utilities
@@ -30,7 +23,7 @@ Information-Gain-Sampler/
 ├── scripts/                        # eval.py, Eval.sh (path A entry points)
 │
 ├── dllm/                           # ── Path B: dllm framework integration ──
-│   ├── dllm/pipelines/info_gain/   #   ★ Info-Gain & LookUM sampler pipelines
+│   ├── dllm/pipelines/info_gain/   #   ★ Info-Gain sampler
 │   │   ├── core.py                 #     Shared: entropy, candidates, scoring
 │   │   ├── llada/                  #     LLaDA (sampler.py + eval.py)
 │   │   └── dream/                  #     Dream  (sampler.py + eval.py)
@@ -58,6 +51,20 @@ Information-Gain-Sampler/
 
 ## dllm Evaluation Quick Start
 
+We also provide an adaptation for the [dllm](https://github.com/ZHZisZZ/dllm) framework. The `dllm/` directory is a Git submodule containing our Info-Gain sampler implementation integrated with the dllm framework.
+
+**To initialize the submodule:**
+
+```bash
+# Clone the repository with submodules
+git clone --recurse-submodules git@github.com:yks23/Information-Gain-Sampler.git
+
+# Or if you already cloned the repository, initialize the submodule
+git submodule update --init --recursive
+```
+
+**Then follow the dllm setup instructions:**
+
 ```bash
 cd dllm/
 
@@ -80,7 +87,7 @@ accelerate launch --num_processes 1 dllm/pipelines/info_gain/llada/eval.py \
     --tasks gsm8k --num_fewshot 5 --model info_gain_llada --apply_chat_template \
     --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,variant=info_gain,use_cache=prefix,threshold=0.9,candidate_number=8,position_temperature=0.1,max_new_tokens=256,steps=256,block_size=32,suppress_tokens=[],begin_suppress_tokens=[]"
 
-# LookUM on LLaDA (change variant only)
+# LookUM on LLaDA
 accelerate launch --num_processes 1 dllm/pipelines/info_gain/llada/eval.py \
     --tasks gsm8k --num_fewshot 5 --model info_gain_llada --apply_chat_template \
     --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,variant=lookum,use_cache=prefix,threshold=0.9,candidate_number=8,position_temperature=0.1,max_new_tokens=256,steps=256,block_size=32,suppress_tokens=[],begin_suppress_tokens=[]"
@@ -92,7 +99,7 @@ bash examples/info-gain/dream/eval.sh --variant info_gain --num_gpu 4
 bash examples/info-gain/dream/eval.sh --variant lookum --num_gpu 4
 ```
 
-See [`dllm/README.md`](dllm/README.md) for full documentation.
+See [`dllm/README.md`](dllm/README.md) for full documentation on using the dllm framework integration.
 
 ## Table of Contents
 
