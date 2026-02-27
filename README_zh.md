@@ -1,4 +1,4 @@
-# 信息增益采样器：掩码扩散模型的解码框架
+# Improving Sampling for Masked Diffusion Models via Information Gain
 
 [中文版 README](README_zh.md) | [English README](README.md)
 
@@ -157,18 +157,31 @@ $$J_{IG}(a_t \mid z_t) = \underbrace{\text{IG}(a_t; z_t)}_{\text{信息增益}} 
 ### 安装依赖
 
 ```bash
-git clone git@github.com:yks23/Information-Gain-Sampler.git
+git clone --recurse-submodules git@github.com:yks23/Information-Gain-Sampler.git
 cd Information-Gain-Sampler
+
+# 初始化 dllm 子模块（如果尚未完成）
+git submodule update --init --recursive
 
 conda create -n info-gain python=3.10
 conda activate info-gain
 
-# 安装核心依赖
+# 安装核心依赖（Path A: src/）
 pip install -r requirements.txt
+
+# Path B (dllm/): 安装 dllm 依赖
+# 详细安装说明请参考 dllm/README.md
+cd dllm/
+pip install -e .
+git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
+pip install -e "lm-evaluation-harness[ifeval,math]"
+cd ..
 
 # 可选：用于多模态评估（FID, GenEval）
 pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
 ```
+
+**注意**：关于 dllm 框架的依赖，请参考 [`dllm/README.md`](dllm/README.md) 获取完整的安装指南和依赖要求。
 
 ## 模型准备
 
@@ -287,7 +300,7 @@ huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
      # 使用 huggingface-cli（推荐）
      huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
      ```
-   - 本地路径：`./model/mmada/`（首选）或 `./mmada-mix/`（备用）
+   - 本地路径：`./model/mmada/`
    - 用途：从文本提示生成图像
    - 大小：~8B 参数，~16GB 磁盘空间
    - **注意**：MMaDA-8B-MixCoT 是文本到图像生成任务所需的版本。Base 版本不适用于此评估框架。
@@ -299,14 +312,13 @@ huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
      # 使用 huggingface-cli（推荐）
      huggingface-cli download showlab/magvitv2 --local-dir ./model/magvitv2
      ```
-   - 本地路径：`./model/magvitv2/`（首选）或 `./magvitv2/`（备用）
+   - 本地路径：`./model/magvitv2/`
    - 用途：将图像编码/解码为离散 token
    - 大小：~600M 参数，~1.2GB 磁盘空间
 
 **模型加载优先级**：
-1. `model/mmada/` 和 `model/magvitv2/`（首选）
-2. 项目根目录：`mmada-mix/` 和 `magvitv2/`（备用）
-3. 配置文件路径（最后手段）
+1. `model/mmada/` 和 `model/magvitv2/`
+2. 配置文件路径（最后手段）
 
 **设置说明**：
 - 使用 HuggingFace `from_pretrained()` 或 `huggingface-cli download` 下载模型

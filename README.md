@@ -1,4 +1,4 @@
-# Info-Gain Sampler for Masked Diffusion Models
+# Improving Sampling for Masked Diffusion Models via Information Gain
 
 [中文版 README](README_zh.md) | [English README](README.md)
 
@@ -240,18 +240,31 @@ Because Info-Gain effectively reduces uncertainty during decoding, the high-conf
 ### Install Dependencies
 
 ```bash
-git clone git@github.com:yks23/Information-Gain-Sampler.git
+git clone --recurse-submodules git@github.com:yks23/Information-Gain-Sampler.git
 cd Information-Gain-Sampler
+
+# Initialize dllm submodule if not already done
+git submodule update --init --recursive
 
 conda create -n info-gain python=3.10
 conda activate info-gain
 
-# Install core dependencies
+# Install core dependencies for Path A (src/)
 pip install -r requirements.txt
+
+# For Path B (dllm/): Install dllm dependencies
+# See dllm/README.md for detailed installation instructions
+cd dllm/
+pip install -e .
+git clone --branch dllm https://github.com/ZHZisZZ/lm-evaluation-harness.git lm-evaluation-harness
+pip install -e "lm-evaluation-harness[ifeval,math]"
+cd ..
 
 # Optional: For multimodal evaluation (FID, GenEval)
 pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
 ```
+
+**Note**: For dllm framework dependencies, please refer to [`dllm/README.md`](dllm/README.md) for the complete installation guide and dependency requirements.
 
 ## Model Preparation
 
@@ -370,7 +383,7 @@ For text-to-image evaluation with MMaDA, you need two models:
      # Using huggingface-cli (recommended)
      huggingface-cli download Gen-Verse/MMaDA-8B-MixCoT --local-dir ./model/mmada
      ```
-   - Local path: `./model/mmada/` (preferred) or `./mmada-mix/` (fallback)
+   - Local path: `./model/mmada/`
    - Purpose: Generates images from text prompts
    - Size: ~8B parameters, ~16GB disk space
    - **Note**: MMaDA-8B-MixCoT is the required version for text-to-image generation tasks. The Base version is not suitable for this evaluation framework.
@@ -382,14 +395,13 @@ For text-to-image evaluation with MMaDA, you need two models:
      # Using huggingface-cli (recommended)
      huggingface-cli download showlab/magvitv2 --local-dir ./model/magvitv2
      ```
-   - Local path: `./model/magvitv2/` (preferred) or `./magvitv2/` (fallback)
+   - Local path: `./model/magvitv2/`
    - Purpose: Encodes/decodes images to/from discrete tokens
    - Size: ~600M parameters, ~1.2GB disk space
 
 **Model Loading Priority**:
-1. `model/mmada/` and `model/magvitv2/` (preferred)
-2. Project root: `mmada-mix/` and `magvitv2/` (fallback)
-3. Config file paths (last resort)
+1. `model/mmada/` and `model/magvitv2/`
+2. Config file paths (last resort)
 
 **Setup Instructions**:
 - Download models using HuggingFace `from_pretrained()` or `huggingface-cli download`
