@@ -334,6 +334,17 @@ def generate_on_gpu(
     image_count = 0
     num_batches = (len(expanded_prompts) + batch_size - 1) // batch_size
 
+    # 创建进度条（多 GPU 时使用不同位置，单 GPU 时使用位置 0）
+    pbar = tqdm(
+        total=total_images,
+        desc=f"[GPU {gpu_id}] 生成图像",
+        unit="张",
+        leave=True,
+        position=gpu_id,
+        ncols=100,
+        mininterval=1.0,  # 至少 1 秒更新一次
+    )
+
     with torch.no_grad():
         for batch_idx in range(num_batches):
             start_idx = batch_idx * batch_size
@@ -363,6 +374,9 @@ def generate_on_gpu(
                 mask_schedule = get_mask_schedule(schedule, **args)
             else:
                 mask_schedule = get_mask_schedule(config.training.get("mask_schedule", "cosine"))
+            
+            # 更新进度条描述（显示当前批次信息）
+            pbar.set_description(f"[GPU {gpu_id}] 批次 {batch_idx+1}/{num_batches}")
             
             # 使用 model.t2i_generate() 方法（支持 IGP/Info-Gain）
             result = model.t2i_generate(
@@ -442,11 +456,17 @@ def generate_on_gpu(
                     with open(txt_path, "w", encoding="utf-8") as f:
                         f.write(prompt)
 
-                if (image_count + 1) % 10 == 0:
-                    print(f"[GPU {gpu_id}] 进度: {image_count+1}/{total_images}")
-
                 image_count += 1
+                # 更新进度条
+                pbar.update(1)
+                # 更新进度条详细信息
+                pbar.set_postfix({
+                    '批次': f'{batch_idx+1}/{num_batches}',
+                    '提示': f'{global_prompt_idx+1}/{len(prompts_subset)}',
+                    '样本': f'{sample_idx+1}/{samples_per_prompt}'
+                })
 
+    pbar.close()
     print(f"[GPU {gpu_id}] 完成！共生成 {image_count} 张图像")
     return image_count
 

@@ -97,6 +97,13 @@ Examples:
     # Change to multimodal directory
     os.chdir(multimodal_dir)
     
+    # Prepare environment variables for model paths
+    env = os.environ.copy()
+    if args.mmada_model_path:
+        env['MMADA_MODEL_PATH'] = args.mmada_model_path
+    if args.vq_model_path:
+        env['VQ_MODEL_PATH'] = args.vq_model_path
+    
     # Run appropriate script
     if args.pipeline == 'all':
         script = 'scripts/run_all.sh'
@@ -128,7 +135,11 @@ Examples:
     # Execute command
     print(f"Running: {' '.join(cmd)}")
     print(f"Working directory: {multimodal_dir}")
-    result = subprocess.run(cmd, cwd=multimodal_dir)
+    if args.mmada_model_path:
+        print(f"MMADA model path: {args.mmada_model_path}")
+    if args.vq_model_path:
+        print(f"VQ model path: {args.vq_model_path}")
+    result = subprocess.run(cmd, cwd=multimodal_dir, env=env)
     sys.exit(result.returncode)
 
 

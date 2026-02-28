@@ -2,9 +2,18 @@
 
 [中文版 README](README_zh.md) | [English README](README.md)
 
-一个统一的解码框架，用于掩码扩散模型（MDMs），结合轨迹规划与信息增益最大化。本仓库提供了 **Info-Gain Sampler** 的实现，这是一个灵活的解码策略，支持多种启发式函数，可适应各种生成任务。
+一个统一的解码框架，用于掩码扩散模型（MDMs），结合轨迹规划与信息增益最大化。本仓库提供了 **Info-Gain Sampler** 的实现，这是一个灵活的解码策略，通过平衡即时确定性与长期信息增益，实现更鲁棒的生成质量。
 
-> **注意**：本仓库正在积极开发中，用于持续实验，尚未完全整理。我们还提供了 [dllm](https://github.com/ZHZisZZ/dllm) 框架的适配版本。`dllm/` 目录是一个 Git 子模块，包含我们集成到 dllm 框架中的 Info-Gain 采样器实现。
+**核心特性：**
+- **信息增益优化**：最大化信息增益，同时最小化即时不确定性成本
+- **高效并行评估**：在单次前向传播中批量评估候选动作
+- **多种缓存模式**：支持无缓存、前缀缓存和双缓存，满足不同速度/质量权衡
+- **统一接口**：与 LLaDA、Dream、MMaDA 等 MDM 架构无缝协作
+- **任务无关**：适用于文本生成、代码补全和多模态任务
+
+> **注意**：本仓库正在积极开发中。我们还提供了生产就绪的 [dllm](https://github.com/ZHZisZZ/dllm) 框架适配版本。`dllm/` 目录是一个 Git 子模块，包含我们与 dllm 框架完全集成的 Info-Gain 采样器实现。
+> 
+> **Beam Search**：Beam search 功能尚未完全整理，可能存在不完整的实现。生产环境建议使用 Info-Gain 采样器（单候选或 `candidate_number > 1`）。
 
 **初始化子模块：**
 
@@ -100,7 +109,10 @@ $$J_{IG}(a_t \mid z_t) = \underbrace{\text{IG}(a_t; z_t)}_{\text{信息增益}} 
 
 ### 高效实现
 
-通过块级计算和 KV 缓存优化，候选评估在单次批量前向传播中并行执行。高置信度绕过机制（阈值 $\gamma$）在不确定性降低时自动触发，显著减少推理延迟。
+- **并行候选评估**：所有候选动作在单次批量前向传播中同时评估，充分利用 MDMs 的双向架构
+- **KV 缓存支持**：可选的前缀缓存和双缓存模式，加速推理（多模态任务默认禁用）
+- **动态阈值**：高置信度绕过机制（阈值 $\gamma$）在不确定性充分降低时自动触发，显著减少推理延迟
+- **无外部依赖**：核心 Info-Gain 函数自包含，避免复杂的依赖链
 
 ---
 
@@ -196,14 +208,59 @@ python utils/calculate_p_baseline.py \
 ```bash
 cd scripts
 
-# 推理任务
-python eval_reasoning.py --task humaneval --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain
+# 推理任务（数学、代码等）
+# HumanEval（代码补全）
+python eval_reasoning.py --task humaneval \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 256
 
-# 创意写作
-python eval_writing.py --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain
+# MATH-500（数学推理）
+python eval_reasoning.py --task math500 \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 256
 
-# 多模态任务
-python eval_multimodal.py --pipeline all
+# GSM8K（小学数学）
+python eval_reasoning.py --task gsm8k \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8
+
+# 创意写作任务
+python eval_writing.py \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 512 \
+    --temperature 0.7
+
+# 多模态任务（文本到图像）
+# 完整流程：生成 + 评估
+python eval_multimodal.py --pipeline all \
+    --mmada_model_path ./model/mmada \
+    --vq_model_path ./model/magvitv2
+
+# 仅生成图像
+python eval_multimodal.py --pipeline generate \
+    --mmada_model_path ./model/mmada \
+    --vq_model_path ./model/magvitv2
+
+# 仅评估已有图像
+python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval
 ```
 
 ### 统一脚本
@@ -211,59 +268,61 @@ python eval_multimodal.py --pipeline all
 ```bash
 cd scripts
 
-# Info-Gain Sampler
-bash Eval.sh --task humaneval --model GSAI-ML/LLaDA-8B-Instruct --mode info-gain \
-    --candidate_number 8 --position_temperature 0.2
+# 带缓存支持的 Info-Gain Sampler
+bash Eval.sh \
+    --task humaneval \
+    --model GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --use_cache prefix \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 256
+
+# 使用双缓存（更快但需要更多内存）
+bash Eval.sh \
+    --task math500 \
+    --model GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --use_cache dual \
+    --threshold 0.8
 
 # 运行 bash Eval.sh --help 查看完整用法
 ```
 
-### 编程式使用
+### dllm 框架评估
 
-```python
-from src.models import get_model_adapter
-from src.generators.base import generate
-import torch
+生产环境推荐使用 dllm 集成：
 
-adapter = get_model_adapter("GSAI-ML/LLaDA-8B-Instruct", device="cuda:0")
-tokenizer = adapter.tokenizer
-model = adapter.model
-
-# 构建提示
-query = "2 + 2 等于多少？"
-messages = [{"role": "user", "content": query}]
-prompt_str = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-prompt = tokenizer(prompt_str)['input_ids']
-prompt = torch.tensor(prompt).to("cuda:0").unsqueeze(0)
-
-# 使用 Info-Gain Sampler 生成
-output = generate(
-    model=model, prompt=prompt, steps=256, gen_length=256, block_length=32,
-    baseline_name="../data/baseline/reference_corpus.json", temperature=0.0,
-    candidate_number=8, position_temperature=0.2, heuristic='confidence',
-    mask_id=adapter.mask_id, adapter=adapter, use_kv_cache=True,
-)
-
-generated_text = tokenizer.batch_decode(output[:, prompt.shape[1]:], skip_special_tokens=True)[0]
-print(generated_text)
+```bash
+cd dllm
+accelerate launch --num_processes 4 \
+    dllm/pipelines/info_gain/llada/eval.py \
+    --tasks "gsm8k" \
+    --model "llada" \
+    --apply_chat_template \
+    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
 ```
-
-完整示例请参见 [src/example_usage.py](src/example_usage.py)。
-
 ---
 
 ## 项目状态
 
 ### 进行中
 
-- Evaluation Codes 整理
-- Protein Generation Quality Test
-- ...
+- 评估代码整理和清理
+- 蛋白质生成质量测试
+- 大规模评估的性能优化
+- Beam search 功能整理和重构
 
 ### 已完成
 
-- arXiv 论文发布
-- dllm 适配
+- 发布 arXiv 论文（[arXiv:2602.18176](https://arxiv.org/abs/2602.18176)）
+- dllm 框架集成，支持完整缓存功能
+- 文本和多模态任务的 Info-Gain 实现
+- 推理、写作和多模态任务的统一评估流程
 
 ---
 

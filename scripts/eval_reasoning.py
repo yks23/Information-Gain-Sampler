@@ -85,6 +85,8 @@ Examples:
                         help='Heuristic function (Info-Gain mode)')
     parser.add_argument('--tokens_per_step', type=int, default=None,
                         help='Tokens decoded per step (K-step decoding)')
+    parser.add_argument('--threshold', type=float, default=0.8,
+                        help='Dynamic threshold for high-confidence bypass (Info-Gain mode)')
     
     # PC-Sampler specific
     parser.add_argument('--lambd', type=float, default=0.25,

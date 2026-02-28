@@ -326,9 +326,69 @@ class LLaDAEvalHarness(LM):
                 from src.generators import generate
                 generated_answer = generate(self.model, prompt, self.steps, self.gen_length, self.block_length, lambd=0.0, alpha=100, baseline_name=self.baseline_name, temperature=self.temperature, cfg_scale=0., remasking=self.remasking, mask_id=self.mask_id, candidate_number=1, position_temperature=0.0, heuristic='margin', adapter=adapter, use_kv_cache=False)
             elif self.mode == 'info-gain':
-                from src.generators import generate_with_info_gain
-                generated_answer = generate_with_info_gain(self.model, prompt, self.steps, self.gen_length, self.block_length, self.temperature, cfg_scale=0., remasking=self.remasking, 
-                                                    position_temperature=self.position_temperature, candidate_number=self.beam_actions, heuristic=self.info_gain_heuristic, adapter=adapter, use_kv_cache=False)
+                # Direct dllm sampler path
+                import sys
+                import os
+                import torch
+                dllm_path = os.path.join(os.path.dirname(__file__), '..', '..', 'dllm')
+                if dllm_path not in sys.path:
+                    sys.path.insert(0, dllm_path)
+                
+                # Determine model type from adapter
+                adapter_class_name = adapter.__class__.__name__.lower()
+                
+                # Import appropriate sampler based on model type
+                if 'dream' in adapter_class_name:
+                    from dllm.pipelines.info_gain.dream import InfoGainDreamSampler, InfoGainDreamSamplerConfig
+                    SamplerClass = InfoGainDreamSampler
+                    ConfigClass = InfoGainDreamSamplerConfig
+                elif 'llada' in adapter_class_name:
+                    from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
+                    SamplerClass = InfoGainLLaDASampler
+                    ConfigClass = InfoGainLLaDASamplerConfig
+                else:
+                    # Default to LLaDA sampler
+                    from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
+                    SamplerClass = InfoGainLLaDASampler
+                    ConfigClass = InfoGainLLaDASamplerConfig
+                
+                # Create sampler instance
+                sampler = SamplerClass(model=self.model, tokenizer=self.tokenizer)
+                
+                # Create config
+                config = ConfigClass(
+                    max_new_tokens=self.gen_length,
+                    block_size=self.block_length,
+                    steps=self.steps,
+                    temperature=self.temperature,
+                    use_cache=None,
+                    threshold=None,
+                    candidate_number=self.beam_actions,
+                    position_temperature=self.position_temperature,
+                    variant="info_gain",
+                    right_shift_logits=adapter.requires_logits_shift if hasattr(adapter, 'requires_logits_shift') else False,
+                    return_dict=False,
+                )
+                
+                # Convert prompt to tensor if needed
+                if isinstance(prompt, torch.Tensor):
+                    if prompt.dim() == 1:
+                        inputs = prompt.unsqueeze(0).to(self.model.device)
+                    else:
+                        inputs = prompt.to(self.model.device)
+                else:
+                    raise ValueError(f"Unsupported prompt type: {type(prompt)}")
+                
+                # Call sampler
+                result = sampler.sample(inputs, config=config)
+                
+                # Extract output from result
+                if isinstance(result, torch.Tensor):
+                    generated_answer = result
+                elif hasattr(result, 'sequences'):
+                    generated_answer = result.sequences
+                else:
+                    raise ValueError(f"Unexpected sampler result type: {type(result)}")
             else:
                 raise NotImplementedError(f"Mode {self.mode} not implemented.")
             

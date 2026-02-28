@@ -3,9 +3,10 @@ Generators module: core generation functions for Masked Diffusion Models.
 
 Submodules:
     - base: Core generate() function and shared utilities
-    - info_gain: Info-Gain Sampler (瞬时熵 + 下一步平均熵)
     - eb_sampler: Entropy-Based Sampler
     - fast_dllm: Fast dLLM generation with dynamic thresholding
+
+Note: Info-Gain sampler is now directly available from dllm.pipelines.info_gain
 """
 
 from .base import (
@@ -22,13 +23,6 @@ from .base import (
 )
 # Backward compatibility alias
 generate = generate_with_beam_search
-from .info_gain import (
-    beam_search_expand_candidate,
-    compute_entropy_info_gain,
-    _lookahead_with_kv_cache,
-    generate_with_info_gain,
-    generate_with_lookum,
-)
 from .eb_sampler import generate_with_eb_sampler
 from .fast_dllm import generate_with_fast_dllm, get_transfer_index_dynamic
 

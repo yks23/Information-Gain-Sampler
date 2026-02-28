@@ -716,21 +716,19 @@ def generate_with_beam_search(
     Beam Search generation loop (for beam_size >= 1).
 
     This function implements beam search with multiple candidates. For beam_size=1,
-    use generate_with_info_gain() instead for better performance (no beam search overhead).
+    use dllm.pipelines.info_gain samplers directly for better performance (no beam search overhead).
 
     When ``use_kv_cache=True``, completed blocks are cached so that each
     denoising step only runs the model forward on the current block instead
     of the full sequence.  The cache is updated once at the end of each
     block.
 
-    **Logits caching**: When ``beam_search_expand_candidate()`` performs a
-    lookahead, the best candidate's logits are cached and reused in the
-    next denoising step, saving one model forward call per step.
+    **Logits caching**: When performing lookahead, the best candidate's logits
+    are cached and reused in the next denoising step, saving one model forward call per step.
 
     **Lookahead with KV-cache**: When ``use_kv_cache=True``, the committed
     prefix KV-cache is expanded and reused during lookahead batch forward
-    passes in ``beam_search_expand_candidate()``, avoiding redundant
-    prefix computation for each candidate.
+    passes, avoiding redundant prefix computation for each candidate.
 
     **Block-causal mask**: When ``use_block_causal_mask=True``, a 4-D
     attention mask is constructed so that tokens attend bidirectionally
@@ -738,9 +736,14 @@ def generate_with_beam_search(
     Diffusion attention pattern.  This overrides the model's built-in
     causal mask.
     """
-    # Lazy import to avoid circular dependency
-    from src.generators.info_gain import beam_search_expand_candidate
-    # Note: This function is for beam search only. For beam_size=1, use generate_with_info_gain() instead.
+    # Note: This function is for beam search only. For beam_size=1, use dllm.pipelines.info_gain samplers directly.
+    # Info-gain variant is no longer supported in beam search - use dllm samplers directly.
+    if variant == "info_gain":
+        raise ValueError(
+            "Info-gain variant is no longer supported in beam search. "
+            "Please use dllm.pipelines.info_gain samplers directly for beam_size=1, "
+            "or use a different variant for beam search."
+        )
 
     global BASE_LINE
     load_baseline(model, baseline_name)
@@ -975,36 +978,12 @@ def generate_with_beam_search(
                         continue
                 # =====================================================
 
-                # ===== IG expansion (with optional KV-cache lookahead) =====
-                cand_confidence = torch.where(
-                    cand_block_mask,
-                    cand_block_top1,
-                    torch.tensor(-np.inf, device=cand_x.device),
+                # ===== Info-gain expansion (no longer supported in beam search) =====
+                # This code path should not be reached due to the check at the start of the function
+                raise ValueError(
+                    "Info-gain variant is no longer supported in beam search. "
+                    "This should have been caught earlier."
                 )
-
-                best_child, _, next_logits_for_cache = beam_search_expand_candidate(
-                    model=model,
-                    candidate=candidate,
-                    x0=cand_x0,
-                    logits=cand_logits,
-                    confidence=cand_confidence[0],
-                    k=k,
-                    candidate_number=candidate_number,
-                    position_temperature=position_temperature,
-                    block_start=block_start,
-                    block_end=block_end,
-                    mask_id=mask_id,
-                    remaining_steps=remaining_steps,
-                    adapter=adapter,
-                    kv_cache=kv_cache,
-                    kv_committed_len=kv_committed_len,
-                    block_causal_4d=block_causal_4d,
-                    temperature=temperature,
-                    variant=variant,
-                )
-
-                new_candidates.append(best_child)
-                new_cached_logits.append(next_logits_for_cache)
 
             candidates = new_candidates
             cached_logits_list = new_cached_logits
@@ -1019,7 +998,10 @@ def generate_with_beam_search(
                 final_attn = block_causal_4d[:, :, block_start:block_end, :block_end]
             else:
                 final_attn = torch.ones(1, final_key_len, dtype=torch.long, device=device)
-            final_pos = torch.arange(block_start, block_end, device=device).unsqueeze(0)
+            # Only use position_ids if adapter supports it (Dream models)
+            final_pos = None
+            if adapter is not None and adapter.requires_logits_shift:
+                final_pos = torch.arange(block_start, block_end, device=device).unsqueeze(0)
 
             _kv_cache_forward(
                 model, final_block, kv_cache, kv_committed_len,

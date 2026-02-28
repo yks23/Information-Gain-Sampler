@@ -61,7 +61,6 @@ def generate_with_algorithm(
 ) -> torch.Tensor:
     """Generate text using specified algorithm."""
     from src.generators import (
-        generate_with_info_gain,
         generate_with_eb_sampler,
         generate_with_fast_dllm,
         pc_sampler_function,
@@ -98,29 +97,80 @@ def generate_with_algorithm(
         pad_penalty = kwargs.get('pad_penalty', 0.0)
         beam_size = kwargs.get('beam_size', 1)
         dynamic_threshold = kwargs.get('dynamic_threshold', None)
+        variant = kwargs.get('variant', 'info_gain')
         
         # Separate paths: info-gain sampler (beam_size=1) vs beam search (beam_size>1)
         if beam_size == 1:
-            # Optimized info-gain sampler path (no beam search overhead)
-            return generate_with_info_gain(
-                model=model_adapter.model,
-                prompt=prompt,
+            # Direct dllm sampler path (no wrapper overhead)
+            import sys
+            import os
+            import torch
+            dllm_path = os.path.join(os.path.dirname(__file__), '..', 'dllm')
+            if dllm_path not in sys.path:
+                sys.path.insert(0, dllm_path)
+            
+            # Determine model type from adapter
+            adapter_class_name = model_adapter.__class__.__name__.lower()
+            
+            # Import appropriate sampler based on model type
+            if 'dream' in adapter_class_name:
+                from dllm.pipelines.info_gain.dream import InfoGainDreamSampler, InfoGainDreamSamplerConfig
+                SamplerClass = InfoGainDreamSampler
+                ConfigClass = InfoGainDreamSamplerConfig
+            elif 'llada' in adapter_class_name:
+                from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
+                SamplerClass = InfoGainLLaDASampler
+                ConfigClass = InfoGainLLaDASamplerConfig
+            else:
+                # Default to LLaDA sampler
+                from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
+                SamplerClass = InfoGainLLaDASampler
+                ConfigClass = InfoGainLLaDASamplerConfig
+            
+            # Create sampler instance
+            sampler = SamplerClass(model=model_adapter.model, tokenizer=model_adapter.tokenizer)
+            
+            # Create config
+            config = ConfigClass(
+                max_new_tokens=gen_length,
+                block_size=block_length,
                 steps=steps,
-                gen_length=gen_length,
-                block_length=block_length,
                 temperature=temperature,
+                use_cache=use_cache,
+                threshold=dynamic_threshold,
                 candidate_number=candidate_number,
                 position_temperature=position_temperature,
-                heuristic=heuristic,
-                mask_id=mask_id,
-                adapter=model_adapter,
-                baseline_name=baseline_name,
-                use_kv_cache=use_kv_cache,
-                use_cache=use_cache,
-                eos_penalty=eos_penalty,
-                pad_penalty=pad_penalty,
-                dynamic_threshold=dynamic_threshold,
+                variant=variant,
+                right_shift_logits=model_adapter.requires_logits_shift if hasattr(model_adapter, 'requires_logits_shift') else False,
+                return_dict=False,  # Return tensor directly for compatibility
             )
+            
+            # Convert prompt to tensor if needed
+            if isinstance(prompt, (list, tuple)):
+                if len(prompt) == 0:
+                    raise ValueError("Prompt cannot be empty")
+                if isinstance(prompt[0], int):
+                    inputs = torch.tensor([prompt], device=model_adapter.model.device, dtype=torch.long)
+                else:
+                    inputs = [torch.tensor(p, device=model_adapter.model.device, dtype=torch.long) for p in prompt]
+            elif isinstance(prompt, torch.Tensor):
+                if prompt.dim() == 1:
+                    inputs = prompt.unsqueeze(0).to(model_adapter.model.device)
+                else:
+                    inputs = prompt.to(model_adapter.model.device)
+            else:
+                raise ValueError(f"Unsupported prompt type: {type(prompt)}")
+            
+            # Call sampler
+            result = sampler.sample(inputs, config=config)
+            
+            # Extract output from result
+            if isinstance(result, torch.Tensor):
+                return result
+            elif hasattr(result, 'sequences'):
+                return result.sequences
+            else:
+                raise ValueError(f"Unexpected sampler result type: {type(result)}")
         else:
             # Beam search path
             from src.generators.base import generate_with_beam_search
@@ -584,6 +634,7 @@ def main(args=None):
                 'heuristic': getattr(args, 'heuristic', 'confidence'),
                 'position_temperature': getattr(args, 'position_temperature', 0.1),
                 'baseline_name': getattr(args, 'baseline_name', None),
+                'dynamic_threshold': getattr(args, 'threshold', 0.8),
             })
             if hasattr(args, 'tokens_per_step') and args.tokens_per_step is not None:
                 gen_kwargs['tokens_per_step'] = args.tokens_per_step

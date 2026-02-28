@@ -45,61 +45,187 @@ from .configuration_llada import (
 from .modeling_llada import LLaDAModelLM
 from .sampling import cosine_schedule, mask_by_random_topk, mask_by_random
 from transformers import PretrainedConfig
-from .igp_util import (
-    compute_entropy,
-    get_confidence_scores,
-    position_sampler,
-    token_sampler,
-    action_sampler,
-    evaluate_candidates_and_select_best,
-    action_selector as igp_action_selector,
-    ActionSet,
-    compute_action_set_similarity,
-)
+# Info-Gain core functions (inline implementation to avoid dllm import issues)
+def add_gumbel_noise(logits: torch.Tensor, temperature: float) -> torch.Tensor:
+    """Gumbel noise for sampling. Uses float64 for better quality."""
+    if temperature == 0:
+        return logits
+    logits = logits.to(torch.float64)
+    noise = torch.rand_like(logits, dtype=torch.float64)
+    gumbel_noise = (-torch.log(noise)) ** temperature
+    return logits.exp() / gumbel_noise
+
+def compute_entropy_info_gain(logits: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
+    """Per-position Shannon entropy. [B, L, V] → [B, L]"""
+    p = F.softmax(logits.float(), dim=-1).clamp(min=eps)
+    return -(p * p.log()).sum(-1)
+
+def generate_candidates(
+    logits,  # [1, T, V]
+    x,  # [1, T]
+    mask_allowed,  # [1, T] bool
+    block_start: int,
+    block_end: int,
+    k: int,
+    n_candidates: int,
+    token_temp: float,
+    pos_temp: float,
+):
+    """Generate diverse candidate actions via Gumbel sampling."""
+    device = x.device
+    block_mask = torch.zeros_like(mask_allowed)
+    block_mask[:, block_start:block_end] = mask_allowed[:, block_start:block_end]
+    neg = torch.finfo(torch.float32).min
+
+    # Base sample (candidate 0)
+    x0_base = torch.argmax(add_gumbel_noise(logits, token_temp), dim=-1)
+    x0_base = torch.where(mask_allowed, x0_base, x)
+    probs_base = F.softmax(logits.float(), dim=-1)
+    conf_base = torch.gather(probs_base, -1, x0_base.unsqueeze(-1)).squeeze(-1)
+    conf_base = torch.where(block_mask, conf_base, neg)
+
+    valid = torch.where(conf_base[0] > neg)[0]
+    nv = valid.shape[0]
+
+    # Trivial cases
+    if nv == 0 or nv <= k or pos_temp <= 0 or n_candidates <= 1:
+        return None, x0_base, conf_base, valid, probs_base
+
+    # Build diverse candidate set
+    actions, x0s, seen = [], [], set()
+    for c in range(n_candidates):
+        if c == 0:
+            x0_c, conf_c = x0_base, conf_base
+        else:
+            x0_c = torch.argmax(add_gumbel_noise(logits, token_temp), dim=-1)
+            x0_c = torch.where(mask_allowed, x0_c, x)
+            cf = torch.gather(probs_base, -1, x0_c.unsqueeze(-1)).squeeze(-1)
+            conf_c = torch.where(block_mask, cf, neg)
+
+        vc = conf_c[0, valid]
+        if c == 0:
+            _, tk = torch.topk(vc, min(k, nv))
+        else:
+            g = -torch.log(-torch.log(torch.rand(nv, device=device) + 1e-10) + 1e-10)
+            _, tk = torch.topk(vc / pos_temp + g, min(k, nv))
+        act = valid[tk]
+        key = tuple(sorted(act.tolist()))
+        if key not in seen:
+            seen.add(key)
+            actions.append(act)
+            x0s.append(x0_c)
+
+    return actions, x0s, conf_base, valid, probs_base
+
+def score_candidates(
+    logits, next_logits, x_batch, actions, mask_id, device,
+    variant: str = "info_gain",
+):
+    """Compute per-candidate objective J (higher is better)."""
+    ne = compute_entropy_info_gain(next_logits)  # [nc, T]
+    rm = x_batch == mask_id
+    H_next = torch.where(rm, ne, ne.new_zeros(1)).sum(-1) / (
+        rm.sum(-1).float() + 1e-10
+    )  # [nc]
+
+    if variant == "lookum":
+        J = -H_next
+        C = H_next.new_zeros(H_next.shape)
+    else:
+        ce = compute_entropy_info_gain(logits)  # [1, T]
+        C = torch.stack([ce[0, a].sum() for a in actions])  # [nc]
+        J = -C - H_next
+
+    return C, H_next, J
 
 # ============================================================================
-# MMaDA特定的IGP Wrapper
+# Info-Gain selection for MMaDA (matching dllm implementation)
 # ============================================================================
 
-def action_selector(
+def _info_gain_select_multimodal(
     model,
-    x: torch.Tensor,
-    candidates: List[ActionSet],
-    mask_token_id: int,
-    attention_mask,
-    tok_idx,
-    current_logits: torch.Tensor,
-    mask_positions: torch.Tensor,
-    device: torch.device,
-    text_tokenizer_size: int = 0,
-    num_new_special_tokens: int = 0,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, Optional[List[Dict]]]:
+    x,  # [1, T] - full sequence
+    logits,  # [1, T, V] - logits for full sequence
+    mask_allowed,  # [1, T] bool - positions eligible for unmasking (only image tokens region)
+    k,  # number of tokens to decode
+    n_cand,  # number of candidates
+    pos_temp,  # position temperature
+    tok_temp,  # token temperature
+    mask_id,
+    block_start,  # start of image tokens region (absolute position)
+    block_end,  # end of image tokens region (absolute position)
+    attention_mask=None,
+    variant="info_gain",
+):
     """
-    MMaDA特定的Action Selector wrapper
-    
-    将MMaDA的模型接口适配到通用的igp_action_selector
+    Info-Gain selection for multimodal (matching dllm _info_gain_select logic).
+    No KV cache, no penalty - just parallel lookahead.
     """
-    # 创建模型前向传播函数
-    def model_forward_fn(x_batch, attn_mask, tok_idx):
-        return model(x_batch, attn_mask, tok_idx).logits
+    device, T = x.device, x.shape[1]
     
-    # 创建token转换函数（将codebook索引转换为完整vocab ID）
-    def token_converter_fn(tokens):
-        return tokens + text_tokenizer_size + num_new_special_tokens
-    
-    # 调用通用的IGP action selector
-    return igp_action_selector(
-        model_forward_fn=model_forward_fn,
-        x=x,
-        candidates=candidates,
-        mask_token_id=mask_token_id,
-        attention_mask=attention_mask,
-        tok_idx=tok_idx,
-        current_logits=current_logits,
-        mask_positions=mask_positions,
-        device=device,
-        token_converter_fn=token_converter_fn,
+    # Generate candidates using dllm's generate_candidates
+    result = generate_candidates(
+        logits, x, mask_allowed, block_start, block_end, k, n_cand, tok_temp, pos_temp
     )
+    actions, x0s, conf_base, valid, _ = result
+    
+    def _make(sel, x0):
+        """Helper to create result for trivial cases."""
+        tr = x.new_zeros(1, T, dtype=torch.bool)
+        tr[0, sel] = True
+        return torch.where(tr, x0, x), None
+    
+    # Trivial early returns
+    if actions is None:
+        nv = valid.shape[0]
+        if nv == 0:
+            return x.clone(), None
+        if nv <= k:
+            return _make(valid, x0s)
+        _, ti = torch.topk(conf_base[0], k)
+        return _make(ti, x0s)
+    if len(actions) <= 1:
+        return _make(actions[0], x0s[0])
+    
+    # Batch next-states (parallel lookahead)
+    nc = len(actions)
+    xb = x.expand(nc, -1).clone()
+    for i in range(nc):
+        xb[i, actions[i]] = x0s[i][0, actions[i]]
+    
+    # Lookahead forward (no KV cache, parallel batch)
+    with torch.no_grad():
+        # Handle attention mask expansion
+        if attention_mask is not None:
+            if isinstance(attention_mask, torch.Tensor):
+                if attention_mask.dim() == 4:
+                    # Already 4D [B, 1, T, T], expand batch dimension
+                    at = attention_mask.expand(nc, -1, -1, -1) if attention_mask.shape[0] == 1 else attention_mask
+                elif attention_mask.dim() == 2:
+                    # 2D [B, T], convert to 4D
+                    at = (attention_mask.expand(nc, -1)[:, :, None] & attention_mask.expand(nc, -1)[:, None, :]).bool().unsqueeze(1)
+                else:
+                    at = attention_mask.expand(nc, -1) if attention_mask.shape[0] == 1 else attention_mask
+            else:
+                at = attention_mask
+        else:
+            at = None
+        
+        # Call model (returns logits directly, not wrapped)
+        nl = model(xb, attention_mask=at)
+        if hasattr(nl, 'logits'):
+            nl = nl.logits
+        # nl is now [nc, T, V]
+    
+    # Score & select
+    _, _, scores = score_candidates(
+        logits, nl, xb, actions, mask_id, device, variant=variant
+    )
+    best = scores.argmax().item()
+    xo = x.clone()
+    xo[0, actions[best]] = x0s[best][0, actions[best]]
+    
+    return xo, nl[best : best + 1]
 
 
 def add_gumbel_noise(logits, temperature):
@@ -187,13 +313,11 @@ class MMadaModelLM(LLaDAModelLM):
             mask_token_id = 126336,
             resolution = 512,
             codebook_size = 8192,
-            # IGP (Information-Gain Planner) specific params
-            igp_num_candidates: int = 8,  # 候选动作集数量
-            igp_position_tau: float = 1.0,  # Position Sampler 的 Gumbel 噪声温度
-            igp_heuristic: str = 'confidence',  # 置信度计算的启发式方法: 'confidence', 'margin', 'neg_entropy'
-            igp_similarity_threshold: float = 0.5,  # 重采样的相似度阈值
-            igp_max_resample_attempts: int = 3,  # 最大重采样尝试次数
-            use_igp: bool = False,  # 是否使用IGP算法，False时使用原始逻辑
+            # Info-Gain specific params (matching dllm implementation)
+            candidate_number: int = 8,  # 候选动作集数量
+            position_temperature: float = 0.1,  # Position Sampler 的 Gumbel 噪声温度
+            variant: str = "info_gain",  # "info_gain" or "lookum"
+            use_info_gain: bool = False,  # 是否使用Info-Gain算法，False时使用原始逻辑
             process_number: int = 0,  # 等距保留的中间过程图像数量（0表示不保存中间过程）
             # Alpha scheduling function params
             alpha_schedule: str = "linear",  # Alpha函数的设计类型，'linear', 'constant', 或 'disable'（默认: 'linear'）
@@ -251,6 +375,10 @@ class MMadaModelLM(LLaDAModelLM):
                 if process_steps[-1] != timesteps - 1:
                     process_steps[-1] = timesteps - 1
 
+        # Cache for logits from Info-Gain lookahead (one per batch sample)
+        # cached_logits[b] = [batch, num_vq_tokens, codebook_size] logits from previous step's lookahead
+        cached_logits = [None] * batch_size
+
         for step in range(timesteps):
             if uncond_input_ids is not None and guidance_scale > 0:
                 uncond_input_ids = torch.cat(
@@ -258,7 +386,8 @@ class MMadaModelLM(LLaDAModelLM):
                 model_input = torch.cat([input_ids, uncond_input_ids])
                 all_attention_mask = torch.cat([attention_mask, uncond_attention_mask], dim=0)
                 attention_bias = (all_attention_mask[:, :, None] & all_attention_mask[:, None, :]).bool().unsqueeze(1)
-                logits = self(model_input, attention_bias=attention_bias).logits 
+                # 显式禁用 KV cache 以加速生成
+                logits = self(model_input, attention_bias=attention_bias, use_cache=False).logits 
                 # print(f"logits.shape: {logits.shape}")
                 cond_logits, uncond_logits = torch.chunk(logits, 2, dim=0)
                 # logits = uncond_logits + guidance_scale * (cond_logits - uncond_logits)
@@ -267,7 +396,8 @@ class MMadaModelLM(LLaDAModelLM):
                 logits = logits[:, -(num_vq_tokens + 1):-1, len(uni_prompting.text_tokenizer) + num_new_special_tokens: len(uni_prompting.text_tokenizer) + num_new_special_tokens + codebook_size]
             else:
                 attention_bias = (attention_mask[:, :, None] & attention_mask[:, None, :]).bool().unsqueeze(1)
-                logits = self(input_ids, attention_bias=attention_bias).logits
+                # 显式禁用 KV cache 以加速生成
+                logits = self(input_ids, attention_bias=attention_bias, use_cache=False).logits
                 logits = logits[:, -(num_vq_tokens + 1):-1, len(uni_prompting.text_tokenizer) + num_new_special_tokens: len(uni_prompting.text_tokenizer) + num_new_special_tokens + codebook_size]
 
             # logits: 1, 1024, 8192
@@ -292,252 +422,159 @@ class MMadaModelLM(LLaDAModelLM):
             tokens_to_decode = current_unknown_count - mask_len.float().mean().item()
             tokens_to_decode = max(1, int(tokens_to_decode))
             
-            # IGP (Information-Gain Planner) Algorithm
-            if use_igp and igp_num_candidates > 1:
-                # IGP Algorithm: Sample-then-Select paradigm
-                # Step 1: Action Sampler - Generate candidate action sets
-                # For each batch sample, generate candidates independently
+            # Info-Gain Algorithm (matching dllm implementation)
+            if use_info_gain and candidate_number > 1:
+                # Info-Gain: parallel lookahead, no KV cache, no penalty
                 sampled_ids = torch.zeros_like(input_ids_minus_lm_vocab_size)
                 masking = torch.zeros_like(unknown_map, dtype=torch.bool)
                 
                 for b in range(batch_size):
                     # Get masked positions for this sample
-                    sample_unknown_map = unknown_map[b]  # [seq_len] - 这是相对于 image tokens 部分的
-                    sample_mask_positions_relative = torch.where(sample_unknown_map)[0]  # [num_masked] - 相对位置（从0开始）
+                    sample_unknown_map = unknown_map[b]  # [num_vq_tokens] - relative to image tokens
+                    sample_mask_positions_relative = torch.where(sample_unknown_map)[0]
                     
                     if len(sample_mask_positions_relative) == 0:
                         continue
                     
-                    # 将相对位置转换为绝对位置（在完整序列中的位置）
-                    # input_ids 结构: [prompt (resolution+1), image_tokens (num_vq_tokens), ...]
-                    # image tokens 部分在序列中的位置是 [-(num_vq_tokens + 1):-1]，即 [seq_len - num_vq_tokens - 1 : seq_len - 1]
+                    # Convert to absolute positions in full sequence
                     seq_len = input_ids.shape[1]
                     image_tokens_start_idx = seq_len - num_vq_tokens - 1
-                    sample_mask_positions_absolute = sample_mask_positions_relative + image_tokens_start_idx
-                    
-                    # Get logits for masked positions
-                    sample_logits = logits[b]  # [seq_len, vocab_size] - 这里的 seq_len 是 image tokens 的长度
-                    sample_mask_logits = sample_logits[sample_mask_positions_relative]  # [num_masked, vocab_size]
+                    image_tokens_end_idx = seq_len - 1
                     
                     # Calculate number of tokens to decode
                     sample_num_transfer = min(tokens_to_decode, len(sample_mask_positions_relative))
                     
-                    # Generate candidate action sets using IGP
-                    # 注意：action_sampler 需要绝对位置，因为 action_selector 中的 x 是完整序列
-                    candidates = action_sampler(
-                        logits=sample_mask_logits,
-                        mask_positions=sample_mask_positions_absolute,  # 使用绝对位置
-                        K=sample_num_transfer,
-                        num_candidates=igp_num_candidates,
-                        position_tau=igp_position_tau,
-                        temperature=temperature,
-                        top_p=None,
-                        top_k=None,
-                        heuristic=igp_heuristic,
-                        similarity_threshold=igp_similarity_threshold,
-                        max_resample_attempts=igp_max_resample_attempts,
-                        device=logits.device
-                    )
-                    
-                    if len(candidates) == 0:
-                        # Fallback to original logic (when no candidates generated)
-                        # Record this in igp_details
-                        if len(igp_details) > b:
-                            step_details = {
-                                'step': step,
-                                'num_candidates': igp_num_candidates,  # Still record the requested number
-                                'best_idx': 0,
-                                'candidates': [],  # Empty because action_sampler failed
-                                'note': 'action_sampler returned 0 candidates, fallback to original logic'
-                            }
-                            if len(igp_details[b]) <= step:
-                                igp_details[b].append(step_details)
-                            else:
-                                igp_details[b][step] = step_details
-                        
-                        sampled = probs[b].reshape(-1, logits.size(-1))
-                        sample_sampled_ids = torch.multinomial(sampled, 1, generator=generator)[:, 0].view(*logits.shape[1:-1])
-                        sample_sampled_ids = torch.where(sample_unknown_map, sample_sampled_ids, input_ids_minus_lm_vocab_size[b])
-                        selected_probs = torch.gather(probs[b], -1, sample_sampled_ids.long()[..., None]).squeeze(-1)
-                        selected_probs = torch.where(sample_unknown_map, selected_probs, torch.finfo(selected_probs.dtype).max)
-                        sample_masking = mask_by_random_topk(mask_len[b:b+1], selected_probs.unsqueeze(0), temperature, generator=generator)[0]
-                        sampled_ids[b] = sample_sampled_ids
-                        masking[b] = sample_masking
-                        
-                        # 计算 fallback 情况下的 approx_loss
-                        # 累加每一步所选择的位置的那些token对应的熵
-                        filled_mask_b = ~sample_masking & sample_unknown_map
-                        if filled_mask_b.sum() > 0:
-                            # 计算被选择位置的熵
-                            original_entropy = compute_entropy(probs=probs[b:b+1])  # shape: (1, seq_len)
-                            # 只累加被选择位置的熵
-                            step_approx_loss = (original_entropy[0] * filled_mask_b.float()).sum()
-                            total_approx_loss[b] = total_approx_loss[b] + step_approx_loss
-                        continue
-                    
-                    # Step 2: Action Selector - Select best action set
-                    # Build input for action_selector
+                    # Get full sequence for Info-Gain
                     x_single = input_ids[b:b+1]  # [1, seq_len]
                     
+                    # Use cached logits if available (from previous step's lookahead)
+                    if cached_logits[b] is not None:
+                        # Use cached logits from previous step's Info-Gain lookahead
+                        current_logits_vq = cached_logits[b]  # [1, num_vq_tokens, codebook_size]
+                        cached_logits[b] = None  # Clear cache after use
+                    else:
+                        # Use current step's logits
+                        current_logits_vq = logits[b:b+1]  # [1, num_vq_tokens, codebook_size]
+                    
+                    # Create full sequence logits by padding image token logits
+                    # logits is [batch, num_vq_tokens, codebook_size], need [1, seq_len, full_vocab]
+                    full_vocab_size = self.config.vocab_size
+                    text_tokenizer_size = len(uni_prompting.text_tokenizer)
+                    full_logits = torch.zeros(1, seq_len, full_vocab_size, device=logits.device, dtype=logits.dtype)
+                    # Fill image tokens region with logits (shifted by text_tokenizer_size)
+                    full_logits[0, image_tokens_start_idx:image_tokens_end_idx, 
+                                text_tokenizer_size + num_new_special_tokens:
+                                text_tokenizer_size + num_new_special_tokens + codebook_size] = current_logits_vq[0]
+                    
+                    # Create mask_allowed for Info-Gain (only image tokens region)
+                    mask_allowed = torch.zeros(1, seq_len, dtype=torch.bool, device=x_single.device)
+                    mask_allowed[0, image_tokens_start_idx:image_tokens_end_idx] = sample_unknown_map
+                    
+                    # Create attention mask for model forward
                     if uncond_input_ids is not None and guidance_scale > 0:
                         attn_mask_single = attention_bias[b:b+1] if attention_bias is not None else None
                     else:
                         if attention_mask is not None:
                             attn_mask_single = (attention_mask[b:b+1, :, None] & attention_mask[b:b+1, None, :]).bool().unsqueeze(1)
                         else:
-                            attn_mask_single = "full"
+                            attn_mask_single = None
                     
-                    # Create a wrapper model that handles t2i_generate's special logits slicing
+                    # Create model wrapper for Info-Gain lookahead
                     class T2IModelWrapper:
-                        def __init__(self, model, uni_prompting, num_vq_tokens, num_new_special_tokens, codebook_size, resolution, guidance_scale, uncond_prefix, attention_bias):
+                        def __init__(self, model, resolution, guidance_scale, uncond_prefix, attention_bias):
                             self.model = model
-                            self.uni_prompting = uni_prompting
-                            self.num_vq_tokens = num_vq_tokens
-                            self.num_new_special_tokens = num_new_special_tokens
-                            self.codebook_size = codebook_size
                             self.resolution = resolution
                             self.guidance_scale = guidance_scale
                             self.uncond_prefix = uncond_prefix
                             self.attention_bias = attention_bias
                         
-                        def __call__(self, x, attention_mask, tok_idx):
+                        def __call__(self, x, attention_mask=None):
+                            # x: [nc, seq_len] - batch of candidates
                             if uncond_input_ids is not None and guidance_scale > 0:
-                                # x 的 batch size 可能是多个候选（例如 8），需要将 uncond_prefix 扩展到相同的 batch size
                                 batch_size = x.shape[0]
                                 if self.uncond_prefix.shape[0] == 1:
-                                    # 扩展 uncond_prefix 到与 x 相同的 batch size
                                     uncond_prefix_expanded = self.uncond_prefix.expand(batch_size, -1)
                                 else:
                                     uncond_prefix_expanded = self.uncond_prefix
-                                
                                 uncond_x = torch.cat([uncond_prefix_expanded, x[:, self.resolution + 1:]], dim=1)
                                 model_input = torch.cat([x, uncond_x], dim=0)
                                 
-                                if attention_mask == "full":
-                                    # 如果 attention_mask 是 "full"，需要为扩展后的 batch 创建 attention_bias
-                                    if self.attention_bias is not None:
-                                        # 扩展 attention_bias 以匹配新的 batch size
-                                        if self.attention_bias.shape[0] == 1:
-                                            # 原始 attention_bias 是 [1, 1, seq_len, seq_len]，需要扩展到 [batch_size, 1, seq_len, seq_len]
-                                            cond_attn = self.attention_bias.expand(batch_size, -1, -1, -1)
-                                            uncond_attn = self.attention_bias.expand(batch_size, -1, -1, -1)
-                                        else:
-                                            cond_attn, uncond_attn = torch.chunk(self.attention_bias, 2, dim=0)
-                                            # 扩展以匹配新的 batch size
-                                            if cond_attn.shape[0] == 1:
-                                                cond_attn = cond_attn.expand(batch_size, -1, -1, -1)
-                                            if uncond_attn.shape[0] == 1:
-                                                uncond_attn = uncond_attn.expand(batch_size, -1, -1, -1)
-                                        all_attention_bias = torch.cat([cond_attn, uncond_attn], dim=0)
+                                if attention_mask is not None:
+                                    if attention_mask.dim() == 2:
+                                        attn_2d = attention_mask
+                                    elif attention_mask.dim() == 4:
+                                        attn_2d = attention_mask.squeeze(1) if attention_mask.shape[1] == 1 else attention_mask
                                     else:
-                                        all_attention_bias = None
+                                        attn_2d = attention_mask
+                                    all_attn_2d = torch.cat([attn_2d, attn_2d], dim=0)
+                                    all_attention_bias = (all_attn_2d[:, :, None] & all_attn_2d[:, None, :]).bool().unsqueeze(1)
                                 else:
-                                    # attention_mask 是实际的 mask tensor
-                                    if isinstance(attention_mask, torch.Tensor):
-                                        # 扩展 attention_mask 以匹配新的 batch size
-                                        if attention_mask.shape[0] == 1:
-                                            cond_attn_mask = attention_mask.expand(batch_size, -1, -1, -1)
-                                        else:
-                                            cond_attn_mask = attention_mask
-                                        # 为 unconditional 部分创建相同的 mask
-                                        uncond_attn_mask = cond_attn_mask.clone()
-                                        all_attention_bias = torch.cat([cond_attn_mask, uncond_attn_mask], dim=0)
-                                    else:
-                                        all_attention_bias = None
+                                    all_attention_bias = None
                                 
-                                logits = self.model(model_input, attention_bias=all_attention_bias).logits
-                                cond_logits, uncond_logits = torch.chunk(logits, 2, dim=0)
-                                logits = (1 + self.guidance_scale) * cond_logits - self.guidance_scale * uncond_logits
+                                output = self.model(model_input, attention_bias=all_attention_bias, use_cache=False)
+                                logits_full = output.logits if hasattr(output, 'logits') else output
+                                cond_logits, uncond_logits = torch.chunk(logits_full, 2, dim=0)
+                                logits_full = (1 + self.guidance_scale) * cond_logits - self.guidance_scale * uncond_logits
                             else:
-                                logits = self.model(x, attention_bias=attention_mask).logits
+                                if attention_mask is not None and attention_mask.dim() == 4:
+                                    attn_bias = attention_mask
+                                elif attention_mask is not None:
+                                    attn_2d = attention_mask.squeeze(1) if attention_mask.dim() == 3 else attention_mask
+                                    attn_bias = (attn_2d[:, :, None] & attn_2d[:, None, :]).bool().unsqueeze(1)
+                                else:
+                                    attn_bias = None
+                                output = self.model(x, attention_bias=attn_bias, use_cache=False)
+                                logits_full = output.logits if hasattr(output, 'logits') else output
                             
-                            logits = logits[:, -(self.num_vq_tokens + 1):-1, 
-                                len(self.uni_prompting.text_tokenizer) + self.num_new_special_tokens: 
-                                len(self.uni_prompting.text_tokenizer) + self.num_new_special_tokens + self.codebook_size]
-                            
-                            from transformers.modeling_outputs import CausalLMOutputWithPast
-                            return CausalLMOutputWithPast(logits=logits)
+                            # Return full logits (not sliced)
+                            return logits_full
                     
                     wrapper_model = T2IModelWrapper(
-                        self, uni_prompting, num_vq_tokens, num_new_special_tokens, codebook_size,
-                        resolution, guidance_scale, uncond_prefix if uncond_input_ids is not None else None,
+                        self, resolution, guidance_scale,
+                        uncond_prefix if uncond_input_ids is not None else None,
                         attention_bias if uncond_input_ids is not None and guidance_scale > 0 else None
                     )
                     
-                    x_next, approx_loss, next_logits, candidate_scores = action_selector(
+                    # Call Info-Gain selection
+                    x_next, next_logits = _info_gain_select_multimodal(
                         model=wrapper_model,
                         x=x_single,
-                        candidates=candidates,
-                        mask_token_id=mask_token_id,
+                        logits=full_logits,
+                        mask_allowed=mask_allowed,
+                        k=sample_num_transfer,
+                        n_cand=candidate_number,
+                        pos_temp=position_temperature,
+                        tok_temp=temperature,
+                        mask_id=mask_token_id,
+                        block_start=image_tokens_start_idx,
+                        block_end=image_tokens_end_idx,
                         attention_mask=attn_mask_single,
-                        tok_idx=None,
-                        current_logits=sample_mask_logits,
-                        mask_positions=sample_mask_positions_absolute,  # 使用绝对位置
-                        device=logits.device,
-                        text_tokenizer_size=len(uni_prompting.text_tokenizer),  # 用于将 codebook 索引转换为完整 vocab ID
-                        num_new_special_tokens=num_new_special_tokens,  # 新增特殊 token 数量
+                        variant=variant,
                     )
                     
-                    # 累积 approx_loss
-                    total_approx_loss[b] = total_approx_loss[b] + approx_loss
+                    # Cache next_logits for next step (if available)
+                    if next_logits is not None:
+                        # Extract image tokens region from next_logits
+                        # next_logits is [1, seq_len, full_vocab], need [1, num_vq_tokens, codebook_size]
+                        next_logits_vq = next_logits[0, image_tokens_start_idx:image_tokens_end_idx,
+                                                      text_tokenizer_size + num_new_special_tokens:
+                                                      text_tokenizer_size + num_new_special_tokens + codebook_size]
+                        cached_logits[b] = next_logits_vq.unsqueeze(0)  # [1, num_vq_tokens, codebook_size]
                     
-                    # 存储candidate scores到igp_details（如果存在）
-                    if candidate_scores is not None and len(igp_details) > b:
-                        # 找到best_idx
-                        best_idx = 0
-                        best_score = float('inf')
-                        for idx, cand in enumerate(candidate_scores):
-                            if cand['score'] < best_score:
-                                best_score = cand['score']
-                                best_idx = idx
-                        
-                        # 将candidate scores添加到igp_details
-                        if len(igp_details[b]) <= step:
-                            # 创建新的step details
-                            step_details = {
-                                'step': step,
-                                'num_candidates': igp_num_candidates,  # Always record the configured value
-                                'actual_candidates': len(candidate_scores),  # Record actual number generated
-                                'best_idx': best_idx,
-                                'candidates': candidate_scores,
-                                'use_igp': True
-                            }
-                            if len(igp_details[b]) == step:
-                                igp_details[b].append(step_details)
-                            else:
-                                # 填充缺失的steps
-                                while len(igp_details[b]) < step:
-                                    igp_details[b].append({
-                                        'step': len(igp_details[b]),
-                                        'num_candidates': igp_num_candidates,
-                                        'best_idx': 0,
-                                        'candidates': [],
-                                    })
-                                igp_details[b].append(step_details)
-                        else:
-                            # 更新已存在的step details
-                            igp_details[b][step]['candidates'] = candidate_scores
-                            igp_details[b][step]['best_idx'] = best_idx
-                            igp_details[b][step]['num_candidates'] = igp_num_candidates  # Always use configured value
-                            igp_details[b][step]['actual_candidates'] = len(candidate_scores)  # Record actual number
-                            igp_details[b][step]['use_igp'] = True
-                    
-                    # Extract selected tokens and positions from x_next
-                    # x_next contains the selected tokens at selected positions
-                    # We need to find which positions were filled (not mask anymore)
-                    x_next_vq = x_next[0, -(num_vq_tokens + 1):-1]
+                    # Extract selected tokens and positions
+                    x_next_vq = x_next[0, image_tokens_start_idx:image_tokens_end_idx]
                     x_next_vq_minus_lm = torch.where(
-                        x_next_vq == mask_token_id, 
-                        mask_token_id, 
-                        x_next_vq - len(uni_prompting.text_tokenizer) - num_new_special_tokens
+                        x_next_vq == mask_token_id,
+                        mask_token_id,
+                        x_next_vq - text_tokenizer_size - num_new_special_tokens
                     )
                     
-                    # Find positions that were filled (changed from mask to token)
+                    # Find positions that were filled
                     filled_positions = (x_next_vq_minus_lm != mask_token_id) & (input_ids_minus_lm_vocab_size[b] == mask_token_id)
                     selected_positions = torch.where(filled_positions)[0]
                     selected_tokens = x_next_vq_minus_lm[selected_positions]
                     
-                    # Update sampled_ids and masking for this sample
+                    # Update sampled_ids and masking
                     sample_sampled_ids = input_ids_minus_lm_vocab_size[b].clone()
                     sample_masking = sample_unknown_map.clone()
                     
@@ -547,88 +584,40 @@ class MMadaModelLM(LLaDAModelLM):
                     
                     sampled_ids[b] = sample_sampled_ids
                     masking[b] = sample_masking
-                
-                # Record IGP details for each batch sample
-                # Note: candidate_scores are already collected in the loop above if IGP is used
-                # Here we just add additional filled position info if not already present
-                for b in range(batch_size):
-                    filled_mask_b = ~masking[b] & unknown_map[b]  # positions filled in this step
+                    
+                    # Compute approx_loss (entropy of selected positions)
+                    filled_mask_b = ~sample_masking & sample_unknown_map
+                    if filled_mask_b.sum() > 0:
+                        # Use current logits entropy (relative to image tokens)
+                        current_entropy_vq = compute_entropy_info_gain(logits[b:b+1])[0]  # [num_vq_tokens]
+                        step_approx_loss = (current_entropy_vq * filled_mask_b.float()).sum()
+                        total_approx_loss[b] = total_approx_loss[b] + step_approx_loss
+                    
+                    # Record Info-Gain details
                     filled_indices = torch.where(filled_mask_b)[0].cpu().tolist()
                     
-                    # Check if we already have step details with candidates (from IGP)
-                    if len(igp_details[b]) > step and 'candidates' in igp_details[b][step] and len(igp_details[b][step]['candidates']) > 0:
-                        # Update existing step details with filled position info
-                        igp_details[b][step]['filled_positions'] = filled_indices
-                        # Compute per-position entropy for filled positions
-                    original_entropy = compute_entropy(probs=probs[b:b+1])  # shape: (1, seq_len)
-                    original_entropy = original_entropy * filled_mask_b.unsqueeze(0).float()
+                    # Compute entropy for filled positions (relative to image tokens)
+                    current_entropy_vq = compute_entropy_info_gain(logits[b:b+1])[0]  # [num_vq_tokens]
                     
-                    filled_confidences = []
-                    filled_entropies = []
-                    filled_tokens = []
-                    
-                    for pos in filled_indices:
-                        token_id = sampled_ids[b, pos].item()
-                        max_prob = probs[b, pos].max().item()  # max probability at this position
-                        entropy_val = original_entropy[0, pos].item()
-                        
-                        filled_confidences.append(max_prob)
-                        filled_entropies.append(entropy_val)
-                        filled_tokens.append(token_id)
-                    
-                        igp_details[b][step]['filled_tokens'] = filled_tokens
-                        igp_details[b][step]['filled_confidences'] = filled_confidences
-                        igp_details[b][step]['filled_entropies'] = filled_entropies
+                    step_details = {
+                        'step': step,
+                        'num_candidates': candidate_number,
+                        'best_idx': 0,  # Info-Gain doesn't return candidate details
+                        'filled_positions': filled_indices,
+                        'filled_tokens': [sampled_ids[b, pos].item() for pos in filled_indices],
+                        'filled_confidences': [probs[b, pos].max().item() for pos in filled_indices],
+                        'filled_entropies': [current_entropy_vq[pos].item() for pos in filled_indices],
+                        'candidates': [],  # Info-Gain doesn't expose candidate details
+                        'use_info_gain': True
+                    }
+                    if len(igp_details[b]) <= step:
+                        igp_details[b].append(step_details)
                     else:
-                        # Fallback: create step details without candidate info (non-IGP or single candidate)
-                        original_entropy = compute_entropy(probs=probs[b:b+1])  # shape: (1, seq_len)
-                        original_entropy = original_entropy * filled_mask_b.unsqueeze(0).float()
-                        
-                        filled_confidences = []
-                        filled_entropies = []
-                        filled_tokens = []
-                        
-                        for pos in filled_indices:
-                            token_id = sampled_ids[b, pos].item()
-                            max_prob = probs[b, pos].max().item()  # max probability at this position
-                            entropy_val = original_entropy[0, pos].item()
-                            
-                            filled_confidences.append(max_prob)
-                            filled_entropies.append(entropy_val)
-                            filled_tokens.append(token_id)
-                        
-                        # 只有在没有candidate信息时才创建新的step details
-                        # 如果已经有candidate信息（从action_selector返回），则只更新filled信息
-                        if len(igp_details[b]) <= step or 'candidates' not in igp_details[b][step] or len(igp_details[b][step].get('candidates', [])) == 0:
-                            step_details = {
-                                'step': step,
-                                'num_candidates': igp_num_candidates,  # Always record the configured value
-                                'best_idx': 0,
-                                'filled_positions': filled_indices,
-                                'filled_tokens': filled_tokens,
-                                'filled_confidences': filled_confidences,
-                                'filled_entropies': filled_entropies,
-                                'candidates': [],  # No candidate details for non-IGP
-                                'use_igp': use_igp  # Record whether IGP was actually used
-                            }
-                            if len(igp_details[b]) <= step:
-                                igp_details[b].append(step_details)
-                            else:
-                                igp_details[b][step].update(step_details)
-                        else:
-                            # 更新已存在的step details的filled信息
-                            igp_details[b][step].update({
-                                'filled_positions': filled_indices,
-                                'filled_tokens': filled_tokens,
-                                'filled_confidences': filled_confidences,
-                                'filled_entropies': filled_entropies,
-                            })
+                        igp_details[b][step] = step_details
             else:
-                # Normal logic when use_igp=False or igp_num_candidates=1
+                # Normal logic when use_info_gain=False or candidate_number=1
                 sampled = probs.reshape(-1, logits.size(-1))
-                # print(f"probs: {probs}, probs.shape: {probs.shape}, sampled: {sampled}, sampled.shape: {sampled.shape}")
-                sampled_ids = torch.multinomial(sampled, 1, generator=generator)[:, 0].view(*logits.shape[:-1]) # 1, 1024
-                # print(f"unknown_map.sum(dim=-1, keepdim=True): {unknown_map.sum(dim=-1, keepdim=True)}")
+                sampled_ids = torch.multinomial(sampled, 1, generator=generator)[:, 0].view(*logits.shape[:-1])
                 sampled_ids = torch.where(unknown_map, sampled_ids, input_ids_minus_lm_vocab_size)
                 # Computes the probabilities of each selected tokens.
                 selected_probs = torch.gather(probs, -1, sampled_ids.long()[..., None])
@@ -636,7 +625,6 @@ class MMadaModelLM(LLaDAModelLM):
 
                 # Ignores the tokens given in the input by overwriting their confidence.
                 selected_probs = torch.where(unknown_map, selected_probs, torch.finfo(selected_probs.dtype).max)
-                # print(f"mask_len: {mask_len}, mask_len.shape: {mask_len.shape}")
                 # Adds noise for randomness
                 masking = mask_by_random_topk(mask_len, selected_probs, temperature, generator=generator)
                 
@@ -648,16 +636,15 @@ class MMadaModelLM(LLaDAModelLM):
                     # 计算这一步的 approx_loss（累加每一步所选择的位置的那些token对应的熵）
                     if filled_mask_b.sum() > 0:
                         # 计算被选择位置的熵
-                        original_entropy = compute_entropy(probs=probs[b:b+1])  # shape: (1, seq_len)
+                        original_entropy = compute_entropy_info_gain(probs[b:b+1])[0]  # [num_vq_tokens]
                         # 只累加被选择位置的熵
-                        step_approx_loss = (original_entropy[0] * filled_mask_b.float()).sum()
+                        step_approx_loss = (original_entropy * filled_mask_b.float()).sum()
                         total_approx_loss[b] = total_approx_loss[b] + step_approx_loss
                     else:
                         step_approx_loss = torch.tensor(0.0, device=logits.device)
                     
                     # Compute per-position entropy (for details only)
-                    original_entropy = compute_entropy(probs=probs[b:b+1])  # shape: (1, seq_len)
-                    original_entropy = original_entropy * filled_mask_b.unsqueeze(0).float()
+                    original_entropy = compute_entropy_info_gain(probs[b:b+1])[0]  # [num_vq_tokens]
                     
                     filled_confidences = []
                     filled_entropies = []
@@ -666,7 +653,7 @@ class MMadaModelLM(LLaDAModelLM):
                     for pos in filled_indices:
                         token_id = sampled_ids[b, pos].item()
                         max_prob = probs[b, pos].max().item()  # max probability at this position
-                        entropy_val = original_entropy[0, pos].item()
+                        entropy_val = original_entropy[pos].item()
                         
                         filled_confidences.append(max_prob)
                         filled_entropies.append(entropy_val)
@@ -674,14 +661,14 @@ class MMadaModelLM(LLaDAModelLM):
                     
                     step_details = {
                         'step': step,
-                        'num_candidates': igp_num_candidates,  # Record the configured value, even if IGP is not used
+                        'num_candidates': candidate_number,  # Record the configured value, even if Info-Gain is not used
                         'best_idx': 0,
                         'filled_positions': filled_indices,
                         'filled_tokens': filled_tokens,
                         'filled_confidences': filled_confidences,
                         'filled_entropies': filled_entropies,
-                        'candidates': [],  # No candidates for non-IGP logic
-                        'use_igp': use_igp  # Record whether IGP was actually used
+                        'candidates': [],  # No candidates for normal logic
+                        'use_info_gain': use_info_gain  # Record whether Info-Gain was actually used
                     }
                     igp_details[b].append(step_details)
             
@@ -1295,7 +1282,8 @@ class MMadaModelLM(LLaDAModelLM):
                 model_input = torch.cat([input_ids, uncond_input_ids])
                 attention_mask = torch.cat([attention_mask, uncond_attention_mask], dim=0)
                 attention_bias = (attention_mask[:, :, None] & attention_mask[:, None, :]).bool().unsqueeze(1)
-                logits = self(model_input, attention_bias=attention_bias).logits 
+                # 显式禁用 KV cache 以加速生成
+                logits = self(model_input, attention_bias=attention_bias, use_cache=False).logits 
                 # print(f"logits.shape: {logits.shape}")
                 cond_logits, uncond_logits = torch.chunk(logits, 2, dim=0)
                 # logits = uncond_logits + guidance_scale * (cond_logits - uncond_logits)
@@ -1304,7 +1292,8 @@ class MMadaModelLM(LLaDAModelLM):
                 logits = logits[:, -(num_vq_tokens + 1):-1, len(uni_prompting.text_tokenizer) + num_new_special_tokens: len(uni_prompting.text_tokenizer) + num_new_special_tokens + codebook_size]
             else:
                 attention_bias = (attention_mask[:, :, None] & attention_mask[:, None, :]).bool().unsqueeze(1)
-                logits = self(input_ids, attention_bias=attention_bias).logits
+                # 显式禁用 KV cache 以加速生成
+                logits = self(input_ids, attention_bias=attention_bias, use_cache=False).logits
                 logits = logits[:, -(num_vq_tokens + 1):-1, len(uni_prompting.text_tokenizer) + num_new_special_tokens: len(uni_prompting.text_tokenizer) + num_new_special_tokens + codebook_size]
 
             # logits: 1, 1024, 8192

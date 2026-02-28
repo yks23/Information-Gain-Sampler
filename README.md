@@ -2,9 +2,18 @@
 
 [中文版 README](README_zh.md) | [English README](README.md)
 
-A unified decoding framework for Masked Diffusion Models (MDMs) that combines trajectory planning with information-gain maximization. This repository provides an implementation of the **Info-Gain Sampler**, a flexible decoding strategy that supports multiple heuristic functions and can adapt to various generation tasks.
+A unified decoding framework for Masked Diffusion Models (MDMs) that combines trajectory planning with information-gain maximization. This repository provides an implementation of the **Info-Gain Sampler**, a flexible decoding strategy that balances immediate certainty with long-term information gain to achieve more robust generation quality.
 
-> **Note**: This repository is under active development for ongoing experiments and has not been fully cleaned up. We also provide an adaptation for the [dllm](https://github.com/ZHZisZZ/dllm) framework. The `dllm/` directory is a Git submodule containing our Info-Gain sampler implementation integrated with the dllm framework.
+**Key Features:**
+- **Information-Gain Optimization**: Maximizes information gain while minimizing immediate uncertainty cost
+- **Efficient Parallel Evaluation**: Batched candidate evaluation in a single forward pass
+- **Multiple Cache Modes**: Supports no cache, prefix cache, and dual cache for different speed/quality trade-offs
+- **Unified Interface**: Works seamlessly with LLaDA, Dream, MMaDA, and other MDM architectures
+- **Task-Agnostic**: Applicable to text generation, code completion, and multimodal tasks
+
+> **Note**: This repository is under active development. We also provide a production-ready adaptation for the [dllm](https://github.com/ZHZisZZ/dllm) framework. The `dllm/` directory is a Git submodule containing our Info-Gain sampler implementation with full dllm integration.
+> 
+> **Beam Search**: The beam search feature is not yet fully organized and may have incomplete implementations. We recommend using the Info-Gain sampler (single candidate or with `candidate_number > 1`) for production use.
 
 **Initialize submodule:**
 
@@ -100,7 +109,10 @@ At each decoding step, Info-Gain Sampler follows a **three-step cycle**:
 
 ### Efficient Implementation
 
-Through block-wise computation and KV-cache optimization, candidate evaluation is performed in parallel within a single batched forward pass. The high-confidence bypass mechanism (threshold $\gamma$) automatically triggers when uncertainty is reduced, significantly reducing inference latency.
+- **Parallel Candidate Evaluation**: All candidates are evaluated simultaneously in a single batched forward pass, leveraging MDMs' bidirectional architecture
+- **KV-Cache Support**: Optional prefix cache and dual cache modes for faster inference (disabled by default for multimodal tasks)
+- **Dynamic Thresholding**: High-confidence bypass mechanism (threshold $\gamma$) automatically triggers when uncertainty is sufficiently reduced, significantly reducing inference latency
+- **No External Dependencies**: Core Info-Gain functions are self-contained, avoiding complex dependency chains
 
 ---
 
@@ -196,14 +208,59 @@ Multimodal evaluation requires the following files:
 ```bash
 cd scripts
 
-# Reasoning tasks
-python eval_reasoning.py --task humaneval --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain
+# Reasoning tasks (math, code, etc.)
+# HumanEval (code completion)
+python eval_reasoning.py --task humaneval \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 256
 
-# Creative writing
-python eval_writing.py --model_name GSAI-ML/LLaDA-8B-Instruct --mode info-gain
+# MATH-500 (mathematical reasoning)
+python eval_reasoning.py --task math500 \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 256
 
-# Multimodal tasks
-python eval_multimodal.py --pipeline all
+# GSM8K (grade school math)
+python eval_reasoning.py --task gsm8k \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8
+
+# Creative writing tasks
+python eval_writing.py \
+    --model_name GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 512 \
+    --temperature 0.7
+
+# Multimodal tasks (text-to-image)
+# Full pipeline: generation + evaluation
+python eval_multimodal.py --pipeline all \
+    --mmada_model_path ./model/mmada \
+    --vq_model_path ./model/magvitv2
+
+# Only generate images
+python eval_multimodal.py --pipeline generate \
+    --mmada_model_path ./model/mmada \
+    --vq_model_path ./model/magvitv2
+
+# Only evaluate existing images
+python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval
 ```
 
 ### Unified Script
@@ -211,59 +268,60 @@ python eval_multimodal.py --pipeline all
 ```bash
 cd scripts
 
-# Info-Gain Sampler
-bash Eval.sh --task humaneval --model GSAI-ML/LLaDA-8B-Instruct --mode info-gain \
-    --candidate_number 8 --position_temperature 0.2
+# Info-Gain Sampler with cache support
+bash Eval.sh \
+    --task humaneval \
+    --model GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --use_cache prefix \
+    --threshold 0.8 \
+    --gen_length 512 \
+    --steps 256
+
+# With dual cache (faster but requires more memory)
+bash Eval.sh \
+    --task math500 \
+    --model GSAI-ML/LLaDA-8B-Instruct \
+    --mode info-gain \
+    --candidate_number 8 \
+    --position_temperature 0.2 \
+    --use_cache dual \
+    --threshold 0.8
 
 # Run bash Eval.sh --help for full usage
 ```
 
-### Programmatic Usage
+### dllm Framework Evaluation
 
-```python
-from src.models import get_model_adapter
-from src.generators.base import generate
-import torch
+For production use, we recommend the dllm integration:
 
-adapter = get_model_adapter("GSAI-ML/LLaDA-8B-Instruct", device="cuda:0")
-tokenizer = adapter.tokenizer
-model = adapter.model
-
-# Build prompt
-query = "What is 2 + 2?"
-messages = [{"role": "user", "content": query}]
-prompt_str = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-prompt = tokenizer(prompt_str)['input_ids']
-prompt = torch.tensor(prompt).to("cuda:0").unsqueeze(0)
-
-# Generate with Info-Gain Sampler
-output = generate(
-    model=model, prompt=prompt, steps=256, gen_length=256, block_length=32,
-    baseline_name="../data/baseline/reference_corpus.json", temperature=0.0,
-    candidate_number=8, position_temperature=0.2, heuristic='confidence',
-    mask_id=adapter.mask_id, adapter=adapter, use_kv_cache=True,
-)
-
-generated_text = tokenizer.batch_decode(output[:, prompt.shape[1]:], skip_special_tokens=True)[0]
-print(generated_text)
+```bash
+cd dllm
+accelerate launch --num_processes 4 \
+    dllm/pipelines/info_gain/llada/eval.py \
+    --tasks "gsm8k" \
+    --model "llada" \
+    --apply_chat_template \
+    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
 ```
-
-For a complete example, see [src/example_usage.py](src/example_usage.py).
-
----
 
 ## Project Status
 
 ### Ongoing
 
-- Organizing Evaluation Codes
-- Protein Generation Quality Test
-- ...
+- Evaluation code organization and cleanup
+- Protein generation quality testing
+- Performance optimization for large-scale evaluation
+- Beam search feature organization and refactoring
 
 ### Done
 
-- Published arXiv paper
-- dllm adaptation
+- Published arXiv paper ([arXiv:2602.18176](https://arxiv.org/abs/2602.18176))
+- dllm framework integration with full cache support
+- Info-Gain implementation for text and multimodal tasks
+- Unified evaluation pipeline for reasoning, writing, and multimodal tasks
 
 ---
 
