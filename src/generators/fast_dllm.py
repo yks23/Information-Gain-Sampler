@@ -56,7 +56,7 @@ def get_transfer_index_dynamic(logits, temperature, remasking, mask_index, x, nu
 def generate_with_fast_dllm(
     model, prompt, steps=128, gen_length=128, block_length=128,
     temperature=0., remasking='low_confidence', mask_id=126336,
-    threshold=None, factor=None, adapter=None, eos_penalty=0.0,
+    threshold=None, factor=None, adapter=None, eos_penalty=0.0, pad_penalty=0.0,
     use_kv_cache=False,
 ):
     """Fast dLLM generation with optional dynamic thresholding.
@@ -147,7 +147,7 @@ def generate_with_fast_dllm(
                 if adapter is not None and adapter.requires_logits_shift:
                     logits = torch.cat([logits[:, :1], logits[:, :-1]], dim=1)
 
-            logits = apply_eos_penalty(logits, model, eos_penalty)
+            logits = apply_eos_penalty(logits, model, eos_penalty, pad_penalty)
 
             mask_index[:, block_end:] = 0
             if factor is None:

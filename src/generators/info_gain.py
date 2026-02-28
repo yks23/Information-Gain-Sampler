@@ -79,18 +79,35 @@ def _lookahead_with_kv_cache(model, x_batch, kv_cache, kv_committed_len,
     else:
         cur_attn = torch.ones(num_candidates, cur_key_len, dtype=torch.long, device=device)
 
-    cur_pos = torch.arange(block_start, block_end, device=device).unsqueeze(0).expand(num_candidates, -1)
+    # Determine if model supports position_ids
+    # LLaDA models don't support position_ids, Dream models do
+    use_position_ids = adapter is None or adapter.requires_logits_shift  # Dream requires shift, supports position_ids
+    
+    cur_pos = None
+    if use_position_ids:
+        cur_pos = torch.arange(block_start, block_end, device=device).unsqueeze(0).expand(num_candidates, -1)
 
     if adapter is not None and adapter.supports_kv_cache:
-        output = model(cur_blocks, attention_mask=cur_attn, position_ids=cur_pos,
-                       past_key_values=expanded_cache, use_cache=False, store_kv=False)
+        # Adapter-aware path: use store_kv parameter if available
+        kwargs = {
+            'attention_mask': cur_attn,
+            'past_key_values': expanded_cache,
+            'use_cache': False,
+            'store_kv': False,
+        }
+        if cur_pos is not None:
+            kwargs['position_ids'] = cur_pos
+        output = model(cur_blocks, **kwargs)
     else:
-        try:
-            output = model(cur_blocks, attention_mask=cur_attn, position_ids=cur_pos,
-                           past_key_values=expanded_cache, use_cache=False)
-        except TypeError:
-            output = model(cur_blocks, attention_mask=cur_attn,
-                           past_key_values=expanded_cache, use_cache=False)
+        # Fallback path: build kwargs conditionally
+        kwargs = {
+            'attention_mask': cur_attn,
+            'past_key_values': expanded_cache,
+            'use_cache': False,
+        }
+        if cur_pos is not None:
+            kwargs['position_ids'] = cur_pos
+        output = model(cur_blocks, **kwargs)
 
     block_logits = output.logits
     if adapter is not None and adapter.requires_logits_shift:
@@ -206,11 +223,15 @@ def beam_search_expand_candidate(
     # --- Batch lookahead forward ---
     with torch.no_grad():
         if kv_cache is not None and kv_committed_len > 0:
+            # Try KV-cache lookahead first
+            # If it fails due to unsupported parameters, fall back to full forward
             try:
                 next_logits = _lookahead_with_kv_cache(
                     model, x_batch, kv_cache, kv_committed_len,
                     block_start, block_end, adapter, block_causal_4d)
-            except Exception:
+            except (TypeError, AttributeError, RuntimeError) as e:
+                # Fallback: full forward pass if KV-cache lookahead fails
+                # This can happen if model doesn't support certain parameters
                 if block_causal_4d is not None:
                     next_logits = model(x_batch, attention_mask=block_causal_4d.expand(nc, -1, -1, -1)).logits
                 else:
@@ -218,6 +239,7 @@ def beam_search_expand_candidate(
                 if adapter is not None and adapter.requires_logits_shift:
                     next_logits = torch.cat([next_logits[:, :1], next_logits[:, :-1]], dim=1)
         else:
+            # No KV-cache: full forward pass
             if block_causal_4d is not None:
                 next_logits = model(x_batch, attention_mask=block_causal_4d.expand(nc, -1, -1, -1)).logits
             else:
@@ -270,27 +292,92 @@ def generate_with_info_gain(
     prefilled_positions=None, heuristic='confidence',
     return_cumulative_entropy=False, tokens_per_step=None,
     adapter=None, save_monotone_residual_path=None,
-    eos_penalty=0.0, beam_size=1,
-    use_kv_cache=False, use_block_causal_mask=False,
+    eos_penalty=0.0, pad_penalty=0.0,
+    use_kv_cache=False, use_cache=None,  # None / "prefix" / "dual"
+    use_block_causal_mask=False,
     variant="info_gain",
+    dynamic_threshold=None,
 ):
-    """Info-Gain Sampler wrapper. ``variant='lookum'`` for LookUM."""
-    from src.generators.base import generate
-    return generate(
-        model=model, prompt=prompt, steps=steps, gen_length=gen_length,
-        block_length=block_length, lambd=lambd, alpha=alpha,
-        baseline_name=baseline_name, temperature=temperature,
-        cfg_scale=cfg_scale, remasking=remasking, mask_id=mask_id,
-        return_order=return_order, candidate_number=candidate_number,
+    """
+    Info-Gain Sampler wrapper - directly calls dllm implementation.
+    
+    Args:
+        use_cache: Cache mode. None (no cache), "prefix" (prefix cache), or "dual" (dual cache with replace_position).
+    """
+    import sys
+    import os
+    # Add dllm to path if not already there
+    dllm_path = os.path.join(os.path.dirname(__file__), '..', '..', 'dllm')
+    if dllm_path not in sys.path:
+        sys.path.insert(0, dllm_path)
+    
+    # Determine model type from adapter
+    if adapter is None:
+        raise ValueError("adapter must be provided to use dllm info-gain sampler")
+    
+    adapter_class_name = adapter.__class__.__name__.lower()
+    
+    # Import appropriate sampler based on model type
+    if 'dream' in adapter_class_name:
+        from dllm.pipelines.info_gain.dream import InfoGainDreamSampler, InfoGainDreamSamplerConfig
+        SamplerClass = InfoGainDreamSampler
+        ConfigClass = InfoGainDreamSamplerConfig
+    elif 'llada' in adapter_class_name:
+        from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
+        SamplerClass = InfoGainLLaDASampler
+        ConfigClass = InfoGainLLaDASamplerConfig
+    else:
+        # Default to LLaDA sampler
+        from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
+        SamplerClass = InfoGainLLaDASampler
+        ConfigClass = InfoGainLLaDASamplerConfig
+    
+    # Create sampler instance
+    sampler = SamplerClass(model=model, tokenizer=adapter.tokenizer)
+    
+    # Create config
+    config = ConfigClass(
+        max_new_tokens=gen_length,
+        block_size=block_length,
+        steps=steps,
+        temperature=temperature,
+        use_cache=use_cache,
+        threshold=dynamic_threshold,
+        candidate_number=candidate_number,
         position_temperature=position_temperature,
-        prefilled_positions=prefilled_positions, heuristic=heuristic,
-        return_cumulative_entropy=return_cumulative_entropy,
-        tokens_per_step=tokens_per_step, adapter=adapter,
-        save_monotone_residual_path=save_monotone_residual_path,
-        eos_penalty=eos_penalty, beam_size=beam_size,
-        use_kv_cache=use_kv_cache, use_block_causal_mask=use_block_causal_mask,
         variant=variant,
+        right_shift_logits=adapter.requires_logits_shift if hasattr(adapter, 'requires_logits_shift') else False,
+        return_dict=False,  # Return tensor directly for compatibility
     )
+    
+    # Convert prompt to tensor if needed
+    if isinstance(prompt, (list, tuple)):
+        if len(prompt) == 0:
+            raise ValueError("Prompt cannot be empty")
+        if isinstance(prompt[0], int):
+            inputs = torch.tensor([prompt], device=model.device, dtype=torch.long)
+        else:
+            inputs = [torch.tensor(p, device=model.device, dtype=torch.long) for p in prompt]
+    elif isinstance(prompt, torch.Tensor):
+        if prompt.dim() == 1:
+            inputs = prompt.unsqueeze(0).to(model.device)
+        else:
+            inputs = prompt.to(model.device)
+    else:
+        raise ValueError(f"Unsupported prompt type: {type(prompt)}")
+    
+    # Call sampler
+    result = sampler.sample(inputs, config=config)
+    
+    # Extract output from result
+    # If return_dict=False, sampler returns tensor directly
+    if isinstance(result, torch.Tensor):
+        return result
+    # If return_dict=True, sampler returns BaseSamplerOutput
+    elif hasattr(result, 'sequences'):
+        return result.sequences
+    else:
+        raise ValueError(f"Unexpected sampler result type: {type(result)}")
 
 
 @torch.no_grad()
@@ -303,8 +390,9 @@ def generate_with_lookum(
     prefilled_positions=None, heuristic='confidence',
     return_cumulative_entropy=False, tokens_per_step=None,
     adapter=None, save_monotone_residual_path=None,
-    eos_penalty=0.0, beam_size=1,
+    eos_penalty=0.0, pad_penalty=0.0,
     use_kv_cache=False, use_block_causal_mask=False,
+    dynamic_threshold=None,
 ):
     """LookUM Sampler wrapper (Info-Gain without the C(a) cost term)."""
     return generate_with_info_gain(
@@ -317,7 +405,7 @@ def generate_with_lookum(
         heuristic=heuristic, return_cumulative_entropy=return_cumulative_entropy,
         tokens_per_step=tokens_per_step, adapter=adapter,
         save_monotone_residual_path=save_monotone_residual_path,
-        eos_penalty=eos_penalty, beam_size=beam_size,
+        eos_penalty=eos_penalty, pad_penalty=pad_penalty,
         use_kv_cache=use_kv_cache, use_block_causal_mask=use_block_causal_mask,
-        variant="lookum",
+        variant="lookum", dynamic_threshold=dynamic_threshold,
     )

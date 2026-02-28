@@ -106,7 +106,8 @@ def _detect_model_type_from_path(model_path: str) -> str:
                         return 'dream'
                     elif arch and 'LLaDA' in str(arch):
                         return 'llada'
-        except Exception:
+        except (KeyError, AttributeError, TypeError):
+            # Config file missing key, attribute error, or type error - continue with fallback
             pass
     
     # Default to LLaDA for MDM models

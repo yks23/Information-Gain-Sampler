@@ -302,7 +302,8 @@ Problem description: {text}
         try:
             extracted_func = model_code.split('```python')[1].split('```')[0]
             extracted_func = extracted_func.replace('```python', '\n').replace('```', '\n')
-        except:
+        except (IndexError, ValueError):
+            # Fallback: if code block parsing fails, just clean up the code
             extracted_func = model_code.replace('```python', '\n').replace('```', '\n')
 
         test_code = "\n\n".join(sample["test_list"])
@@ -426,7 +427,8 @@ def collect_answer_from_response(response):
             _res = _res[-1] if _res and len(_res)>0 else ""
             if _res != "":
                 break
-    except Exception:
+    except (re.error, IndexError, AttributeError):
+        # Regex error or no match found, continue with empty result
         pass
     _res = _res.strip('.')
     return _res
@@ -666,13 +668,20 @@ def eval_gsm8k(results, dataset, result_path, args):
 
 def eval(task, results, dataset, result_path, args):
  # ----------------- Save Raw Results -------------------
-    save_path = result_path + ".raw_results.json"
-    try:
-        with open(save_path, 'w', encoding='utf-8') as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
-        print(f"Raw results saved to {save_path}")
-    except Exception as e:
-        print(f"Warning: Failed to save raw results. {e}")
+    if result_path is None:
+        print("Warning: result_path is None, skipping raw results save")
+    else:
+        save_path = result_path + ".raw_results.json"
+        try:
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(results, f, ensure_ascii=False, indent=2)
+            print(f"Raw results saved to {save_path}")
+        except Exception as e:
+            print(f"Warning: Failed to save raw results. {e}")
+
+    if result_path is None:
+        print("Warning: result_path is None, skipping task-specific evaluation")
+        return
 
     if task == 'humaneval':
         eval_humaneval(results, dataset, result_path)
@@ -694,6 +703,7 @@ def eval(task, results, dataset, result_path, args):
         
         # Create a summary file for creativity_writing
         # result_path might be .json or .txt, ensure we create the right file
+        # Note: result_path is already checked to be not None above
         if result_path.endswith('.json'):
             summary_path = result_path
         elif result_path.endswith('.txt'):
@@ -704,7 +714,8 @@ def eval(task, results, dataset, result_path, args):
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write(f"Task: creativity_writing\n")
             f.write(f"Total Samples: {len(results)}\n")
-            f.write(f"\nNote: Raw results are saved in {save_path}\n")
+            if result_path is not None:
+                f.write(f"\nNote: Raw results are saved in {result_path}.raw_results.json\n")
             f.write(f"Use src/benchmarks/text_tasks/creativity_writing/judge.py for LLM-as-judge evaluation.\n")
         
         print(f"Summary saved to: {summary_path}")

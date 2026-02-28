@@ -107,7 +107,10 @@ Examples:
     parser.add_argument('--no_shot', action='store_true',
                         help='Disable few-shot examples')
     parser.add_argument('--use_kv_cache', action='store_true',
-                        help='Enable KV-cache optimization')
+                        help='Enable KV-cache optimization (legacy, use --use_cache instead)')
+    parser.add_argument('--use_cache', type=str, default=None,
+                        choices=[None, 'none', 'prefix', 'dual'],
+                        help='Cache mode: None/none (no cache), prefix (prefix cache), or dual (dual cache with replace_position)')
     parser.add_argument('--data_path', type=str, default=None,
                         help='Dataset path (task default if not specified)')
     parser.add_argument('--result_path', type=str, default=None,

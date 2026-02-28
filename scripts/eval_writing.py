@@ -86,7 +86,10 @@ Examples:
     
     # Other options
     parser.add_argument('--use_kv_cache', action='store_true',
-                        help='Enable KV-cache optimization')
+                        help='Enable KV-cache optimization (legacy, use --use_cache instead)')
+    parser.add_argument('--use_cache', type=str, default=None,
+                        choices=[None, 'none', 'prefix', 'dual'],
+                        help='Cache mode: None/none (no cache), prefix (prefix cache), or dual (dual cache with replace_position)')
     parser.add_argument('--data_path', type=str,
                         default='../src/benchmarks/text_tasks/creativity_writing/data/creativity_writing.jsonl',
                         help='Dataset path')

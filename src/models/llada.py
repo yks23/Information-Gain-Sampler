@@ -23,7 +23,19 @@ class LLaDAAdapter(BaseModelAdapter):
 
     @property
     def supports_kv_cache(self) -> bool:
-        """LLaDA supports KV-cache but requires truncation."""
+        """LLaDA models now support KV-cache (base, FastdLLM, and InfoGain versions)."""
+        # All LLaDA model versions now support KV cache after the fix
+        # Check if this is a FastdLLM or InfoGain version (which have additional features)
+        if hasattr(self.model, 'config'):
+            config = self.model.config
+            config_class_name = config.__class__.__name__
+            if 'FastdLLM' in config_class_name or 'InfoGain' in config_class_name:
+                return True
+        # Check model class name
+        model_class_name = self.model.__class__.__name__
+        if 'FastdLLM' in model_class_name or 'InfoGain' in model_class_name:
+            return True
+        # Base LLaDA model now also supports KV cache (after removing the assertion)
         return True
 
     @property

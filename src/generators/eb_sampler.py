@@ -10,7 +10,7 @@ from src.generators.base import add_gumbel_noise, apply_eos_penalty
 @torch.no_grad()
 def generate_with_eb_sampler(
     model, prompt, gamma=0.1, gen_length=128, temperature=0.,
-    cfg_scale=0., mask_id=126336, adapter=None, eos_penalty=0.0,
+    cfg_scale=0., mask_id=126336, adapter=None, eos_penalty=0.0, pad_penalty=0.0,
     use_kv_cache=False,
 ):
     # Note: EB-Sampler iterates globally (not block-by-block), so KV cache
@@ -33,12 +33,12 @@ def generate_with_eb_sampler(
                 logits = torch.cat([logits[:, :1], logits[:, :-1]], dim=1)
             logits, un_logits = torch.chunk(logits, 2, dim=0)
             logits = un_logits + (cfg_scale + 1) * (logits - un_logits)
-            logits = apply_eos_penalty(logits, model, eos_penalty)
+            logits = apply_eos_penalty(logits, model, eos_penalty, pad_penalty)
         else:
             logits = model(x).logits
             if adapter is not None and adapter.requires_logits_shift:
                 logits = torch.cat([logits[:, :1], logits[:, :-1]], dim=1)
-            logits = apply_eos_penalty(logits, model, eos_penalty)
+            logits = apply_eos_penalty(logits, model, eos_penalty, pad_penalty)
 
         logits_with_noise = add_gumbel_noise(logits, temperature=temperature)
         predicted_tokens = torch.argmax(logits_with_noise, dim=-1)

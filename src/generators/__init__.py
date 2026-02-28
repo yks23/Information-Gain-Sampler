@@ -9,7 +9,7 @@ Submodules:
 """
 
 from .base import (
-    generate,
+    generate_with_beam_search,
     add_gumbel_noise,
     get_num_transfer_tokens,
     get_transfer_index,
@@ -20,6 +20,8 @@ from .base import (
     _kv_cache_forward,
     _truncate_kv_cache,
 )
+# Backward compatibility alias
+generate = generate_with_beam_search
 from .info_gain import (
     beam_search_expand_candidate,
     compute_entropy_info_gain,

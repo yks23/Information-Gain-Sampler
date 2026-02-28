@@ -2,6 +2,8 @@ import json
 import os
 
 def load_json_or_jsonl(file_path):
+    if file_path is None:
+        raise ValueError("file_path cannot be None. Please specify a valid data path.")
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"file {file_path} not found")
     with open(file_path, 'r', encoding='utf-8') as f:

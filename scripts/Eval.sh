@@ -33,6 +33,7 @@ GAMMA=0.01
 THREAD=0.9
 NO_SHOT=""
 USE_KV_CACHE=""
+USE_CACHE=""
 RESULT_DIR=""
 
 # User-overridable task params (empty = use built-in default)
@@ -63,7 +64,11 @@ Common options:
   --gamma G               Gamma for EB-Sampler (default: 0.01)
   --thread T              Threshold for fast_dllm (default: 0.9)
   --no_shot               Disable few-shot examples
-  --use_kv_cache          Enable KV cache (completed blocks are cached)
+  --use_kv_cache          Enable KV cache (legacy, use --use_cache instead)
+  --use_cache MODE        Cache mode: none|prefix|dual (default: none)
+                          - none: no cache
+                          - prefix: prefix cache (cache prompt KV)
+                          - dual: dual cache with replace_position
 
 Task param overrides (auto-detected if omitted):
   --gen_length N          Generated answer length
@@ -113,6 +118,7 @@ while [[ $# -gt 0 ]]; do
         --result_path)           RESULT_PATH_OVERRIDE="$2";  shift 2 ;;
         --no_shot)               NO_SHOT="--no_shot";        shift   ;;
         --use_kv_cache)          USE_KV_CACHE="--use_kv_cache"; shift  ;;
+        --use_cache)             USE_CACHE="--use_cache $2"; shift 2 ;;
         -h|--help)               usage                                ;;
         *)
             echo "Unknown option: $1"; usage ;;
@@ -211,6 +217,7 @@ echo " heuristic      : $HEURISTIC"
 echo " candidate_num  : $CANDIDATE_NUMBER"
 echo " pos_temperature: $POSITION_TEMPERATURE"
 echo " use_kv_cache   : ${USE_KV_CACHE:-off}"
+echo " use_cache      : ${USE_CACHE:-none}"
 echo " data_path      : $DATA_PATH"
 echo " result_path    : $RESULT_PATH"
 echo "======================================================="
@@ -248,6 +255,10 @@ fi
 
 if [[ -n "$USE_KV_CACHE" ]]; then
     CMD+=($USE_KV_CACHE)
+fi
+
+if [[ -n "$USE_CACHE" ]]; then
+    CMD+=($USE_CACHE)
 fi
 
 echo ""

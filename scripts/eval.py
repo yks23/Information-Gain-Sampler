@@ -61,45 +61,93 @@ def generate_with_algorithm(
 ) -> torch.Tensor:
     """Generate text using specified algorithm."""
     from src.generators import (
-        generate,
         generate_with_info_gain,
         generate_with_eb_sampler,
         generate_with_fast_dllm,
         pc_sampler_function,
     )
+    from src.generators.base import generate_with_beam_search
     
     mask_id = model_adapter.mask_id
-    gen_length = kwargs.get('gen_length', 512)
-    steps = kwargs.get('steps', 512)
-    block_length = kwargs.get('block_length', 16)
-    temperature = kwargs.get('temperature', 0.7)
+    gen_length = kwargs.get('gen_length')
+    if gen_length is None:
+        gen_length = 512
+    steps = kwargs.get('steps')
+    if steps is None:
+        steps = 512
+    block_length = kwargs.get('block_length')
+    if block_length is None:
+        block_length = 16
+    temperature = kwargs.get('temperature')
+    if temperature is None:
+        temperature = 0.7
     use_kv_cache = kwargs.get('use_kv_cache', True)
+    use_cache = kwargs.get('use_cache', None)
+    # Handle legacy use_kv_cache: if use_cache is None and use_kv_cache is True, use old behavior
+    if use_cache is None and use_kv_cache:
+        use_cache = None  # Keep old behavior (use_kv_cache=True means block-level cache)
+    elif use_cache == "none":
+        use_cache = None
     
     if algorithm == "info-gain":
         candidate_number = kwargs.get('candidate_number', 8)
         heuristic = kwargs.get('heuristic', 'confidence')
         position_temperature = kwargs.get('position_temperature', 0.3)
         baseline_name = kwargs.get('baseline_name', None)
+        eos_penalty = kwargs.get('eos_penalty', 0.0)
+        pad_penalty = kwargs.get('pad_penalty', 0.0)
+        beam_size = kwargs.get('beam_size', 1)
+        dynamic_threshold = kwargs.get('dynamic_threshold', None)
         
-        return generate_with_info_gain(
-            model=model_adapter.model,
-            prompt=prompt,
-            steps=steps,
-            gen_length=gen_length,
-            block_length=block_length,
-            temperature=temperature,
-            candidate_number=candidate_number,
-            position_temperature=position_temperature,
-            heuristic=heuristic,
-            mask_id=mask_id,
-            adapter=model_adapter,
-            baseline_name=baseline_name,
-            use_kv_cache=use_kv_cache,
-            eos_penalty=kwargs.get('eos_penalty', 1.0)
-        )
+        # Separate paths: info-gain sampler (beam_size=1) vs beam search (beam_size>1)
+        if beam_size == 1:
+            # Optimized info-gain sampler path (no beam search overhead)
+            return generate_with_info_gain(
+                model=model_adapter.model,
+                prompt=prompt,
+                steps=steps,
+                gen_length=gen_length,
+                block_length=block_length,
+                temperature=temperature,
+                candidate_number=candidate_number,
+                position_temperature=position_temperature,
+                heuristic=heuristic,
+                mask_id=mask_id,
+                adapter=model_adapter,
+                baseline_name=baseline_name,
+                use_kv_cache=use_kv_cache,
+                use_cache=use_cache,
+                eos_penalty=eos_penalty,
+                pad_penalty=pad_penalty,
+                dynamic_threshold=dynamic_threshold,
+            )
+        else:
+            # Beam search path
+            from src.generators.base import generate_with_beam_search
+            return generate_with_beam_search(
+                model=model_adapter.model,
+                prompt=prompt,
+                steps=steps,
+                gen_length=gen_length,
+                block_length=block_length,
+                temperature=temperature,
+                candidate_number=candidate_number,
+                position_temperature=position_temperature,
+                heuristic=heuristic,
+                mask_id=mask_id,
+                adapter=model_adapter,
+                baseline_name=baseline_name,
+                use_kv_cache=use_kv_cache,
+                eos_penalty=eos_penalty,
+                pad_penalty=pad_penalty,
+                beam_size=beam_size,
+                dynamic_threshold=dynamic_threshold,
+                variant="info_gain",
+            )
     elif algorithm == "pc":
-        # PC-Sampler (Probability-Calibrated)
-        return generate(
+        # PC-Sampler (Probability-Calibrated) - uses beam search
+        from src.generators.base import generate_with_beam_search
+        return generate_with_beam_search(
             model=model_adapter.model,
             prompt=prompt,
             steps=steps,
@@ -113,7 +161,9 @@ def generate_with_algorithm(
             adapter=model_adapter,
             baseline_name=kwargs.get('baseline_name', None),
             use_kv_cache=use_kv_cache,
-            eos_penalty=kwargs.get('eos_penalty', 1.0)
+            eos_penalty=kwargs.get('eos_penalty', 0.0),
+            pad_penalty=kwargs.get('pad_penalty', 0.0),
+            beam_size=kwargs.get('beam_size', 1),
         )
     elif algorithm == "eb":
         # EB-Sampler (Entropy-Based)
@@ -141,11 +191,13 @@ def generate_with_algorithm(
             mask_id=mask_id,
             adapter=model_adapter,
             use_kv_cache=use_kv_cache,
-            **kwargs
+            eos_penalty=kwargs.get('eos_penalty', 0.0),
+            pad_penalty=kwargs.get('pad_penalty', 0.0),
+            **{k: v for k, v in kwargs.items() if k not in ['eos_penalty', 'pad_penalty']}
         )
     elif algorithm == "original":
-        # Original (confidence-based greedy)
-        return generate(
+        # Original (confidence-based greedy) - uses beam search
+        return generate_with_beam_search(
             model=model_adapter.model,
             prompt=prompt,
             steps=steps,
@@ -159,7 +211,9 @@ def generate_with_algorithm(
             adapter=model_adapter,
             baseline_name=kwargs.get('baseline_name', None),
             use_kv_cache=use_kv_cache,
-            eos_penalty=kwargs.get('eos_penalty', 1.0)
+            eos_penalty=kwargs.get('eos_penalty', 0.0),
+            pad_penalty=kwargs.get('pad_penalty', 0.0),
+            beam_size=kwargs.get('beam_size', 1),
         )
     else:
         raise ValueError(f"Unknown algorithm: {algorithm}")
@@ -247,10 +301,12 @@ def main(args=None):
                             help='Device to use')
         
         # Data
-        parser.add_argument('--data_path', type=str, required=True,
-                            help='Path to dataset file')
-        parser.add_argument('--result_path', type=str, required=True,
-                            help='Path to save results')
+        parser.add_argument('--data_path', type=str, default=None,
+                            help='Path to dataset file (default: data/{task}.jsonl)')
+        parser.add_argument('--result_path', type=str, default=None,
+                            help='Path to save results (auto-generated if not provided)')
+        parser.add_argument('--result_dir', type=str, default=None,
+                            help='Output result directory (used for auto-generating result_path)')
         
         # Generation parameters
         parser.add_argument('--gen_length', type=int, default=512,
@@ -298,7 +354,10 @@ def main(args=None):
         
         # Other
         parser.add_argument('--use_kv_cache', action='store_true', default=False,
-                            help='Use KV cache')
+                            help='Use KV cache (legacy, use --use_cache instead)')
+        parser.add_argument('--use_cache', type=str, default=None,
+                            choices=[None, 'none', 'prefix', 'dual'],
+                            help='Cache mode: None/none (no cache), prefix (prefix cache), or dual (dual cache with replace_position)')
         parser.add_argument('--no_shot', action='store_true',
                             help='Disable few-shot examples')
         
@@ -340,6 +399,72 @@ def main(args=None):
         else:
             baseline_name = os.path.join(project_root, "data", "baseline", "reference_corpus.json")
         args.baseline_name = baseline_name if os.path.exists(baseline_name) else None
+    else:
+        # If baseline_name is provided, resolve relative paths
+        if not os.path.isabs(args.baseline_name):
+            # Try relative to project_root first
+            abs_path = os.path.join(project_root, args.baseline_name)
+            if os.path.exists(abs_path):
+                args.baseline_name = abs_path
+            # Try relative to current working directory
+            elif os.path.exists(args.baseline_name):
+                args.baseline_name = os.path.abspath(args.baseline_name)
+            else:
+                # File doesn't exist, set to None (will skip baseline loading)
+                print(f"Warning: baseline file not found: {args.baseline_name}, skipping baseline loading.")
+                args.baseline_name = None
+        else:
+            # Absolute path provided, check if exists
+            if not os.path.exists(args.baseline_name):
+                print(f"Warning: baseline file not found: {args.baseline_name}, skipping baseline loading.")
+                args.baseline_name = None
+    
+    # Set default data path if not provided
+    if not hasattr(args, 'data_path') or args.data_path is None:
+        # Map task names to default data files
+        task_to_file = {
+            'humaneval': 'humaneval.jsonl',
+            'mbpp': 'sanitized-mbpp.json',
+            'math500': 'math500.jsonl',
+            'gsm8k': 'gsm8k.jsonl',
+            'gpqa': 'gpqa.jsonl',
+            'sudoku': 'sudoku.csv',
+            'countdown': 'countdown.jsonl',
+        }
+        if hasattr(args, 'task') and args.task in task_to_file:
+            args.data_path = os.path.join(project_root, "data", task_to_file[args.task])
+        else:
+            raise ValueError(f"data_path is required for task '{getattr(args, 'task', 'unknown')}'. "
+                           f"Please specify --data_path or use a supported task with default data file.")
+    
+    # Auto-generate result_path if not provided
+    if not hasattr(args, 'result_path') or args.result_path is None:
+        # Generate model short name from model path
+        model_name = getattr(args, 'model_name', 'unknown')
+        model_short = os.path.basename(model_name).lower().replace('/', '_').replace('-', '_')
+        model_short = ''.join(c if c.isalnum() or c == '_' else '_' for c in model_short)
+        
+        # Get result directory
+        if hasattr(args, 'result_dir') and args.result_dir is not None:
+            result_dir = args.result_dir
+        else:
+            result_dir = os.path.join(project_root, "results", f"{model_short}_eval")
+        
+        # Create result directory if it doesn't exist
+        os.makedirs(result_dir, exist_ok=True)
+        
+        # Generate result file name
+        task = getattr(args, 'task', 'unknown')
+        algorithm = getattr(args, 'algorithm', 'info-gain')
+        temperature = getattr(args, 'temperature', 0.7)
+        tokens_per_step = getattr(args, 'tokens_per_step', '')
+        tokens_per_step_str = f"_K{tokens_per_step}" if tokens_per_step else ""
+        
+        args.result_path = os.path.join(
+            result_dir,
+            f"{task}_{algorithm}_T{temperature}{tokens_per_step_str}.txt"
+        )
+        print(f"Auto-generated result_path: {args.result_path}")
     
     # Import evaluation utilities
     from src.utils.eval_utils import load_dataset, eval as eval_task
@@ -352,9 +477,21 @@ def main(args=None):
     results = []
     mask_id = adapter.mask_id
     
-    print(f"Evaluating {len(dataset)} samples...")
-    for idx, sample in enumerate(dataset):
-        if (idx + 1) % 10 == 0:
+    # Add progress bar
+    try:
+        from tqdm import tqdm
+        use_tqdm = True
+    except ImportError:
+        use_tqdm = False
+        print(f"Evaluating {len(dataset)} samples...")
+    
+    if use_tqdm:
+        progress_bar = tqdm(dataset, desc="Evaluating", unit="sample", total=len(dataset))
+    else:
+        progress_bar = dataset
+    
+    for idx, sample in enumerate(progress_bar):
+        if not isinstance(progress_bar, tqdm) and (idx + 1) % 10 == 0:
             print(f"Processing sample {idx + 1}/{len(dataset)}...")
         
         # Build prompt using query_extract
@@ -405,16 +542,36 @@ def main(args=None):
         prompt_ids = prompt_ids.to(adapter.device)
         
         # Prepare generation kwargs with safe attribute access
+        # Handle None values: if attribute is None, use default
+        gen_length = getattr(args, 'gen_length', None)
+        if gen_length is None:
+            gen_length = 512
+        
+        steps = getattr(args, 'steps', None)
+        if steps is None:
+            steps = 512
+        
+        block_length = getattr(args, 'block_length', None)
+        if block_length is None:
+            block_length = 16
+        
+        temperature = getattr(args, 'temperature', None)
+        if temperature is None:
+            temperature = 0.7
+        
         gen_kwargs = {
-            'gen_length': getattr(args, 'gen_length', 512),
-            'steps': getattr(args, 'steps', 512),
-            'block_length': getattr(args, 'block_length', 16),
-            'temperature': getattr(args, 'temperature', 0.7),
+            'gen_length': gen_length,
+            'steps': steps,
+            'block_length': block_length,
+            'temperature': temperature,
             'use_kv_cache': hasattr(args, 'use_kv_cache') and args.use_kv_cache,
+            'use_cache': getattr(args, 'use_cache', None),
+            'eos_penalty': getattr(args, 'eos_penalty', 0.0),
+            'pad_penalty': getattr(args, 'pad_penalty', 0.0),
         }
         
         # For sudoku task, dynamically adjust steps and block_length based on mask count
-        if args.task == 'sudoku' and getattr(args, 'gen_length', 512) == 0:
+        if args.task == 'sudoku' and gen_length == 0:
             num_masks = (prompt_ids[0] == adapter.mask_id).sum().item()
             gen_kwargs['steps'] = num_masks
             gen_kwargs['block_length'] = len(prompt_ids[0])
@@ -482,6 +639,29 @@ def main(args=None):
                 generated_ids, skip_special_tokens=True
             )[0]
             results.append(generated_text)
+        
+        # Output sample every 10 samples
+        if (idx + 1) % 10 == 0:
+            print(f"\n{'='*80}")
+            print(f"Sample {idx + 1}/{len(dataset)}")
+            print(f"{'='*80}")
+            # Show input (truncated if too long)
+            if args.task == 'sudoku':
+                print(f"Input: {sample.get('Puzzle', 'N/A')[:100]}...")
+            else:
+                input_text = prompt_text[:200] if len(prompt_text) > 200 else prompt_text
+                print(f"Input: {input_text}...")
+            # Show output (truncated if too long)
+            if args.task == 'sudoku':
+                output_preview = results[-1][:300] if len(results[-1]) > 300 else results[-1]
+            else:
+                output_preview = generated_text[:300] if len(generated_text) > 300 else generated_text
+            print(f"Output: {output_preview}...")
+            if args.task in ['math500', 'gsm8k', 'gpqa'] and 'Answer' in sample:
+                print(f"Ground Truth: {sample.get('Answer', 'N/A')}")
+            elif args.task == 'countdown' and 'Target' in sample:
+                print(f"Target: {sample.get('Target', 'N/A')}")
+            print(f"{'='*80}\n")
     
     # Evaluate using eval_task (this saves raw results and creates summary files)
     eval_task(args.task, results, dataset, args.result_path, args)
