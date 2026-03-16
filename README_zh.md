@@ -345,12 +345,32 @@ bash Eval.sh \
 
 ```bash
 cd dllm
-accelerate launch --num_processes 4 \
+
+# LLaDA（单 GPU）
+accelerate launch --num_processes 1 \
     dllm/pipelines/info_gain/llada/eval.py \
     --tasks "gsm8k" \
     --model "llada" \
     --apply_chat_template \
     --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# SDAR
+accelerate launch --num_processes 1 \
+    dllm/pipelines/info_gain/sdar/eval.py \
+    --tasks "gsm8k" \
+    --model "sdar" \
+    --apply_chat_template \
+    --model_args "pretrained=JetLM/SDAR-8B-Chat,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# TraDo
+accelerate launch --num_processes 1 \
+    dllm/pipelines/info_gain/sdar/eval.py \
+    --tasks "gsm8k" \
+    --model "trado" \
+    --apply_chat_template \
+    --model_args "pretrained=Gen-Verse/TraDo-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# 多 GPU：将 --num_processes 1 替换为 GPU 数量
 ```
 ---
 
