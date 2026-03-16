@@ -1,0 +1,16 @@
+# Creative writing evaluation with Info-Gain sampler.
+# python run.py --config configs/writing_info_gain.yaml
+
+task: creativity_writing
+model: llada
+mode: info-gain
+variant: info_gain
+candidate_number: 8
+position_temperature: 0.2
+threshold: 0.8
+use_cache: prefix
+temperature: 0.7
+gen_length: 512
+steps: 512
+block_length: 32
+no_shot: false

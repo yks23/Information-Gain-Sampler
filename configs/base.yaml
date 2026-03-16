@@ -1,0 +1,27 @@
+# Base config — all other configs inherit from this.
+# Override any field in a task-specific config or via CLI: python run.py --config X.yaml --key value
+
+# ── Model ────────────────────────────────────────────────────────────────────
+model: llada        # local alias (looks in ./model/<name>/) or HuggingFace path
+device: cuda:0
+
+# ── Sampler ──────────────────────────────────────────────────────────────────
+mode: info-gain     # info-gain | original | pc_sampler | eb_sampler | fast_dllm
+variant: info_gain  # info_gain | lookum
+
+# Info-Gain hyper-parameters
+candidate_number: 8
+position_temperature: 0.2
+threshold: 0.8
+use_cache: prefix   # none | prefix | dual
+temperature: 0.0
+
+# ── Generation ───────────────────────────────────────────────────────────────
+gen_length: 256
+steps: 256
+block_length: 32
+
+# ── Data & output ────────────────────────────────────────────────────────────
+no_shot: false
+max_samples: null   # set to small number (e.g. 2) for quick smoke-testing
+result_dir: results/

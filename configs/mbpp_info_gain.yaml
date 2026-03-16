@@ -1,0 +1,16 @@
+# Reproduce MBPP results with Info-Gain sampler (Table 1 in paper).
+# python run.py --config configs/mbpp_info_gain.yaml
+
+task: mbpp
+model: llada
+mode: info-gain
+variant: info_gain
+candidate_number: 8
+position_temperature: 0.2
+threshold: 0.8
+use_cache: prefix
+temperature: 0.0
+gen_length: 512
+steps: 512
+block_length: 32
+no_shot: true

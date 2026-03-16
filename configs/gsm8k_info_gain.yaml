@@ -1,0 +1,19 @@
+# Reproduce GSM8K results with Info-Gain sampler (Table 1 in paper).
+# python run.py --config configs/gsm8k_info_gain.yaml
+# python run.py --config configs/gsm8k_info_gain.yaml --model dream
+# python run.py --config configs/gsm8k_info_gain.yaml --model sdar
+# python run.py --config configs/gsm8k_info_gain.yaml --model trado
+
+task: gsm8k
+model: llada
+mode: info-gain
+variant: info_gain
+candidate_number: 8
+position_temperature: 0.2
+threshold: 0.8
+use_cache: prefix
+temperature: 0.0
+gen_length: 256
+steps: 256
+block_length: 32
+no_shot: false

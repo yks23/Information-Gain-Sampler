@@ -1,0 +1,11 @@
+# GSM8K baseline: original (confidence-based greedy) sampler.
+# python run.py --config configs/gsm8k_original.yaml
+
+task: gsm8k
+model: llada
+mode: original
+temperature: 0.0
+gen_length: 256
+steps: 256
+block_length: 32
+no_shot: false
