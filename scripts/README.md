@@ -93,9 +93,12 @@ Models should be placed in the `model/` directory:
 model/
 ├── dream/          # Dream model
 ├── llada/          # LLaDA model
+├── sdar/           # SDAR model (JetLM/SDAR-8B-Chat)
+├── trado/          # TraDo model (Gen-Verse/TraDo-8B-Instruct)
 ├── mmada/          # MMaDA model (for T2I)
 └── magvitv2/       # MAGVITv2 VQ model (for T2I)
 ```
 
 The scripts will automatically detect models from the `model/` directory.
+SDAR and TraDo use the same adapter (`SDARAdapter`) as they share the same architecture.
 

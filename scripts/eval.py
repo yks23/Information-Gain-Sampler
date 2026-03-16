@@ -121,6 +121,10 @@ def generate_with_algorithm(
                 from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
                 SamplerClass = InfoGainLLaDASampler
                 ConfigClass = InfoGainLLaDASamplerConfig
+            elif 'sdar' in adapter_class_name:
+                from dllm.pipelines.info_gain.sdar import InfoGainSDARSampler, InfoGainSDARSamplerConfig
+                SamplerClass = InfoGainSDARSampler
+                ConfigClass = InfoGainSDARSamplerConfig
             else:
                 # Default to LLaDA sampler
                 from dllm.pipelines.info_gain.llada import InfoGainLLaDASampler, InfoGainLLaDASamplerConfig
@@ -166,6 +170,9 @@ def generate_with_algorithm(
             
             # Extract output from result
             if isinstance(result, torch.Tensor):
+                # For info-gain, we need to track cumulative entropy
+                # Store it in a global or return it along with the result
+                # For now, return result and we'll track entropy separately in eval_multigpu
                 return result
             elif hasattr(result, 'sequences'):
                 return result.sequences
@@ -383,6 +390,11 @@ def main(args=None):
                             help='Position temperature for action sampling')
         parser.add_argument('--tokens_per_step', type=int, default=None,
                             help='Tokens decoded per step (K-step decoding)')
+        parser.add_argument('--variant', type=str, default='info_gain',
+                            choices=['info_gain', 'lookum'],
+                            help='Variant for Info-Gain sampler: info_gain or lookum')
+        parser.add_argument('--threshold', type=float, default=0.8,
+                            help='Dynamic threshold for high-confidence bypass (Info-Gain mode)')
         
         # PC-Sampler specific
         parser.add_argument('--lambd', type=float, default=0.25,
@@ -635,6 +647,7 @@ def main(args=None):
                 'position_temperature': getattr(args, 'position_temperature', 0.1),
                 'baseline_name': getattr(args, 'baseline_name', None),
                 'dynamic_threshold': getattr(args, 'threshold', 0.8),
+                'variant': getattr(args, 'variant', 'info_gain'),
             })
             if hasattr(args, 'tokens_per_step') and args.tokens_per_step is not None:
                 gen_kwargs['tokens_per_step'] = args.tokens_per_step

@@ -22,6 +22,7 @@ Usage:
 
 import os
 from pathlib import Path
+
 from .base import BaseModelAdapter
 from .dream import DreamAdapter
 from .llada import LLaDAAdapter
@@ -80,6 +81,8 @@ def _detect_model_type_from_path(model_path: str) -> str:
         return 'dream'
     elif 'sdar' in path_name or 'sdar' in path_lower:
         return 'sdar'
+    elif 'trado' in path_name or 'trado' in path_lower:
+        return 'sdar'  # TraDo uses SDARForCausalLM architecture
     elif 'llada' in path_name or 'llada' in path_lower:
         return 'llada'
     elif 'mistral' in path_name or 'mistral' in path_lower:
@@ -88,7 +91,7 @@ def _detect_model_type_from_path(model_path: str) -> str:
         return 'qwen'
     elif 'llama' in path_name or 'llama' in path_lower:
         return 'llama'
-    
+
     # Check config.json if exists
     config_path = os.path.join(model_path, 'config.json')
     if os.path.exists(config_path):
@@ -99,6 +102,8 @@ def _detect_model_type_from_path(model_path: str) -> str:
                 model_type = config.get('model_type', '').lower()
                 if 'dream' in model_type:
                     return 'dream'
+                elif model_type == 'sdar':
+                    return 'sdar'
                 elif 'llada' in model_type or 'llama' in model_type:
                     # Check architecture to distinguish
                     arch = config.get('architectures', [])
@@ -106,10 +111,12 @@ def _detect_model_type_from_path(model_path: str) -> str:
                         return 'dream'
                     elif arch and 'LLaDA' in str(arch):
                         return 'llada'
+                    elif arch and 'SDAR' in str(arch):
+                        return 'sdar'
         except (KeyError, AttributeError, TypeError):
             # Config file missing key, attribute error, or type error - continue with fallback
             pass
-    
+
     # Default to LLaDA for MDM models
     return 'llada'
 
@@ -208,6 +215,8 @@ def get_model_adapter(model_name: str, device: str = "cuda:0") -> BaseModelAdapt
             model_type = 'dream'
         elif 'sdar' in name_lower:
             model_type = 'sdar'
+        elif 'trado' in name_lower:
+            model_type = 'sdar'  # TraDo uses SDARForCausalLM architecture
         elif 'llada' in name_lower:
             model_type = 'llada'
         elif 'mistral' in name_lower:

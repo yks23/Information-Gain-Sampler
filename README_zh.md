@@ -203,6 +203,52 @@ python utils/calculate_p_baseline.py \
 
 ## 快速开始
 
+### 多GPU评估脚本
+
+使用 `eval_multigpu.py` 脚本进行高效的多GPU评估：
+
+```bash
+# 完整示例，包含所有参数
+python scripts/eval_multigpu.py \
+    --task math500 \
+    --model_name dream \
+    --num_gpus 4 \
+    --device cuda \
+    --data_path data/math500.jsonl \
+    --result_path results/math500_results.txt \
+    --mode info-gain \
+    --variant lookum \
+    --gen_length 512 \
+    --steps 512 \
+    --block_length 16 \
+    --temperature 0.7 \
+    --candidate_number 8 \
+    --heuristic confidence \
+    --position_temperature 0.1 \
+    --threshold 0.8 \
+    --use_cache prefix \
+    --no_shot
+
+# 或通过SLURM批处理脚本提交
+sbatch scripts/eval_lookum.sbatch
+```
+
+**关键参数：**
+- `--task`: 任务名称 (`math500`, `humaneval`, `gsm8k`, `mbpp`, `sudoku`, `countdown`)
+- `--model_name`: 模型名称或路径（本地：`dream`, `./model/dream`，或HuggingFace路径）
+- `--num_gpus`: GPU数量（默认：自动检测）
+- `--mode`: 采样模式 (`info-gain`, `original`, `pc_sampler`, `eb_sampler`, `fast_dllm`, `entropy`, `margin`)
+- `--variant`: Info-Gain变体 (`info_gain` 或 `lookum`)
+- `--gen_length`, `--steps`, `--block_length`: 生成参数
+- `--temperature`: 采样温度
+- `--candidate_number`: 候选动作数量
+- `--position_temperature`: 位置采样温度
+- `--threshold`: 高置信度跳过的动态阈值
+- `--use_cache`: 缓存模式 (`none`, `prefix`, `dual`)
+- `--no_shot`: 禁用few-shot示例（数学/代码任务自动启用）
+
+**输出：** 结果会实时保存到 `worker_results/` 目录，包含JSONL和人类可读格式。
+
 ### 任务特定脚本
 
 ```bash

@@ -203,6 +203,52 @@ Multimodal evaluation requires the following files:
 
 ## Quick Start
 
+### Multi-GPU Evaluation Script
+
+For efficient multi-GPU evaluation, use the `eval_multigpu.py` script:
+
+```bash
+# Complete example with all parameters
+python scripts/eval_multigpu.py \
+    --task math500 \
+    --model_name dream \
+    --num_gpus 4 \
+    --device cuda \
+    --data_path data/math500.jsonl \
+    --result_path results/math500_results.txt \
+    --mode info-gain \
+    --variant lookum \
+    --gen_length 512 \
+    --steps 512 \
+    --block_length 16 \
+    --temperature 0.7 \
+    --candidate_number 8 \
+    --heuristic confidence \
+    --position_temperature 0.1 \
+    --threshold 0.8 \
+    --use_cache prefix \
+    --no_shot
+
+# Or submit via SLURM batch script
+sbatch scripts/eval_lookum.sbatch
+```
+
+**Key Parameters:**
+- `--task`: Task name (`math500`, `humaneval`, `gsm8k`, `mbpp`, `sudoku`, `countdown`)
+- `--model_name`: Model name or path (local: `dream`, `./model/dream`, or HuggingFace path)
+- `--num_gpus`: Number of GPUs (default: auto-detect)
+- `--mode`: Sampling mode (`info-gain`, `original`, `pc_sampler`, `eb_sampler`, `fast_dllm`, `entropy`, `margin`)
+- `--variant`: Info-Gain variant (`info_gain` or `lookum`)
+- `--gen_length`, `--steps`, `--block_length`: Generation parameters
+- `--temperature`: Sampling temperature
+- `--candidate_number`: Number of candidate actions
+- `--position_temperature`: Temperature for position sampling
+- `--threshold`: Dynamic threshold for high-confidence bypass
+- `--use_cache`: Cache mode (`none`, `prefix`, `dual`)
+- `--no_shot`: Disable few-shot examples (auto-enabled for math/code tasks)
+
+**Output:** Results are saved in real-time to `worker_results/` directory with both JSONL and human-readable formats.
+
 ### Task-Specific Scripts
 
 ```bash
@@ -299,12 +345,32 @@ For production use, we recommend the dllm integration:
 
 ```bash
 cd dllm
-accelerate launch --num_processes 4 \
+
+# LLaDA (single GPU)
+accelerate launch --num_processes 1 \
     dllm/pipelines/info_gain/llada/eval.py \
     --tasks "gsm8k" \
     --model "llada" \
     --apply_chat_template \
     --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# SDAR
+accelerate launch --num_processes 1 \
+    dllm/pipelines/info_gain/sdar/eval.py \
+    --tasks "gsm8k" \
+    --model "sdar" \
+    --apply_chat_template \
+    --model_args "pretrained=JetLM/SDAR-8B-Chat,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# TraDo
+accelerate launch --num_processes 1 \
+    dllm/pipelines/info_gain/sdar/eval.py \
+    --tasks "gsm8k" \
+    --model "trado" \
+    --apply_chat_template \
+    --model_args "pretrained=Gen-Verse/TraDo-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# Multi-GPU: replace --num_processes 1 with the number of GPUs
 ```
 
 ## Project Status

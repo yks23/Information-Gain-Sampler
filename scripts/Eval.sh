@@ -28,6 +28,8 @@ BASELINE_NAME="../data/baseline/reference_corpus.json"
 POSITION_TEMPERATURE=0
 CANDIDATE_NUMBER=1
 HEURISTIC="confidence"
+VARIANT="info_gain"
+THRESHOLD=0.8
 TOKENS_PER_STEP=""
 GAMMA=0.01
 THREAD=0.9
@@ -81,6 +83,8 @@ Info-Gain specific:
   --position_temperature T  Position sampling temperature (default: 0)
   --candidate_number N      Number of candidate actions (default: 1)
   --heuristic H             Heuristic: pc|confidence|neg_entropy|margin|uniform (default: confidence)
+  --variant V               Variant: info_gain|lookum (default: info_gain)
+  --threshold T             Dynamic threshold for high-confidence bypass (default: 0.8)
 
 Output:
   --result_dir DIR        Result output directory (default: auto-generated)
@@ -114,6 +118,8 @@ while [[ $# -gt 0 ]]; do
         --position_temperature)  POSITION_TEMPERATURE="$2";  shift 2 ;;
         --candidate_number)      CANDIDATE_NUMBER="$2";      shift 2 ;;
         --heuristic)             HEURISTIC="$2";             shift 2 ;;
+        --variant)               VARIANT="$2";               shift 2 ;;
+        --threshold)             THRESHOLD="$2";             shift 2 ;;
         --result_dir)            RESULT_DIR="$2";            shift 2 ;;
         --result_path)           RESULT_PATH_OVERRIDE="$2";  shift 2 ;;
         --no_shot)               NO_SHOT="--no_shot";        shift   ;;
@@ -216,6 +222,8 @@ echo " temperature    : $TEMPERATURE"
 echo " heuristic      : $HEURISTIC"
 echo " candidate_num  : $CANDIDATE_NUMBER"
 echo " pos_temperature: $POSITION_TEMPERATURE"
+echo " variant        : $VARIANT"
+echo " threshold      : $THRESHOLD"
 echo " use_kv_cache   : ${USE_KV_CACHE:-off}"
 echo " use_cache      : ${USE_CACHE:-none}"
 echo " data_path      : $DATA_PATH"
@@ -240,6 +248,8 @@ CMD=(
     --position_temperature "$POSITION_TEMPERATURE"
     --candidate_number "$CANDIDATE_NUMBER"
     --heuristic "$HEURISTIC"
+    --variant "$VARIANT"
+    --threshold "$THRESHOLD"
     --data_path "$DATA_PATH"
     --result_path "$RESULT_PATH"
 )

@@ -52,27 +52,15 @@ def countdown_check(model_answer, ground_truth, target=None):
     """
     import re
     
-    # 如果标准答案直接出现在模型回答中，认为正确
-    if ground_truth in model_answer:
-        return True
-    
-    # 尝试从模型答案中提取公式
-    # 查找 "The answer is:" 后面的内容
-    patterns = [
-        r'[Tt]he answer is[:\s]+([^\n]+)',
-        r'答案[是为]?[:\s]+([^\n]+)',
-        r'=\s*(\d+)\s*$',  # 最后一个等式结果
-    ]
-    
-    formula = None
-    for pattern in patterns[:2]:
-        match = re.search(pattern, model_answer)
-        if match:
-            formula = match.group(1).strip()
-            break
-    
-    if not formula:
+    if not model_answer or not ground_truth:
         return False
+    
+    # 如果标准答案直接出现在模型回答中，认为正确
+    # 清理空白后比较
+    gt_clean = re.sub(r'\s+', '', ground_truth)
+    answer_clean = re.sub(r'\s+', '', model_answer)
+    if gt_clean in answer_clean:
+        return True
     
     # 从 ground_truth 提取目标数字（最后一个等式的结果）
     if target is None:
@@ -80,13 +68,49 @@ def countdown_check(model_answer, ground_truth, target=None):
         if gt_match:
             target = int(gt_match.group(1))
         else:
-            return False
+            # 尝试从ground_truth中提取最后一个数字
+            numbers = re.findall(r'\d+', ground_truth)
+            if numbers:
+                target = int(numbers[-1])
+            else:
+                return False
+    
+    # 尝试从模型答案中提取公式
+    # 查找 "The answer is:" 后面的内容
+    patterns = [
+        r'[Tt]he\s+answer\s+is[:\s]+([^\n\.]+)',
+        r'答案[是为]?[:\s]+([^\n\.]+)',
+        r'([\d\+\-\*\/\×\÷=,，；;\s]+)',  # 提取包含数字和运算符的公式
+    ]
+    
+    formula = None
+    for pattern in patterns[:2]:
+        match = re.search(pattern, model_answer)
+        if match:
+            formula = match.group(1).strip()
+            # 清理公式中的额外文本
+            formula = re.sub(r'[^\d\+\-\*\/\×\÷=,，；;\s]', '', formula)
+            if formula and ('=' in formula or ',' in formula or ';' in formula):
+                break
+    
+    # 如果前两个模式没找到，尝试从整个答案中提取公式
+    if not formula:
+        # 查找包含等式的部分
+        eq_matches = re.findall(r'[\d\+\-\*\/\×\÷=,，；;\s]+', model_answer)
+        if eq_matches:
+            # 取最长的匹配（最可能是公式）
+            formula = max(eq_matches, key=len).strip()
+    
+    if not formula:
+        return False
+    
     
     # 解析并验证公式
     try:
         # 分割多个步骤
         steps = re.split(r'[,;，；]', formula)
         
+        final_result = None
         for step in steps:
             step = step.strip()
             if not step:
@@ -94,7 +118,7 @@ def countdown_check(model_answer, ground_truth, target=None):
             
             # 解析单个等式: "44-15=29" 或 "44-15"
             # 提取操作: a op b = c
-            eq_match = re.match(r'(\d+)\s*([\+\-\*\/\×\÷])\s*(\d+)\s*=?\s*(\d+)?', step)
+            eq_match = re.search(r'(\d+)\s*([\+\-\*\/\×\÷])\s*(\d+)\s*=?\s*(\d+)?', step)
             if eq_match:
                 a, op, b, result = eq_match.groups()
                 a, b = int(a), int(b)
@@ -117,19 +141,19 @@ def countdown_check(model_answer, ground_truth, target=None):
                 if result:
                     expected = int(result)
                     if abs(calculated - expected) > 0.001:
-                        return False
-                
-                # 记录最后的计算结果
-                final_result = calculated if result is None else int(result)
+                        continue  # 这个步骤计算错误，跳过
+                    final_result = expected
+                else:
+                    final_result = calculated
         
         # 验证最终结果是否等于目标
-        if 'final_result' in dir() and final_result is not None:
+        if final_result is not None:
             return abs(final_result - target) < 0.001
         
     except Exception as e:
         pass
     
-        return False
+    return False
 
 def eval_countdown(results, dataset, result_path, args):
     true_num = 0
@@ -419,37 +443,198 @@ def eval_mbpp(results, dataset, result_path):
 
 
 def collect_answer_from_response(response):
-    regex_list = [r"boxed{(.*)}","framebox{(.*)}"]
-    _res = ""
+    """
+    Robustly extract the final answer from model response.
+    Tries multiple strategies in order of preference.
+    """
+    if not response or not isinstance(response, str):
+        return ""
+    
+    # Strategy 1: Extract from \boxed{} (preferred, most reliable)
+    # Match both \boxed{...} and boxed{...} (with or without backslash)
+    boxed_patterns = [
+        r"\\boxed\{([^}]+)\}",  # \boxed{...}
+        r"boxed\{([^}]+)\}",    # boxed{...} (without backslash)
+        r"\\framebox\{([^}]+)\}",  # \framebox{...}
+        r"framebox\{([^}]+)\}",    # framebox{...}
+    ]
+    
+    for pattern in boxed_patterns:
+        matches = re.findall(pattern, response, flags=re.DOTALL)
+        if matches:
+            # Take the last match (most likely the final answer)
+            answer = matches[-1].strip()
+            # Remove trailing punctuation and whitespace
+            answer = re.sub(r'[.,;:!?]+$', '', answer).strip()
+            if answer:
+                return answer
+    
+    # Strategy 2: Extract from "The answer is:" or "answer is:" patterns
+    answer_patterns = [
+        r"(?:The\s+)?answer\s+is[:\s]+([^\n\.]+)",
+        r"answer[:\s]+([^\n\.]+)",
+        r"Therefore[^,]*,\s*([^\n\.]+)",
+        r"Thus[^,]*,\s*([^\n\.]+)",
+    ]
+    
+    for pattern in answer_patterns:
+        matches = re.findall(pattern, response, flags=re.IGNORECASE | re.DOTALL)
+        if matches:
+            answer = matches[-1].strip()
+            # Remove common trailing phrases
+            answer = re.sub(r'\s*(?:\.|,|;|:|\?|!)\s*$', '', answer)
+            # Remove LaTeX boxed if present
+            answer = re.sub(r'\\boxed\{([^}]+)\}', r'\1', answer)
+            if answer and len(answer) < 200:  # Reasonable length limit
+                return answer
+    
+    # Strategy 3: Extract the last number or mathematical expression
+    # This is a fallback for cases where no clear answer marker is found
+    # Look for the last occurrence of a number or fraction
+    number_patterns = [
+        r'(-?\d+\.?\d*)\s*$',  # Last number
+        r'\\frac\{([^}]+)\}\{([^}]+)\}',  # Last fraction
+    ]
+    
+    for pattern in number_patterns:
+        matches = re.findall(pattern, response)
+        if matches:
+            if isinstance(matches[-1], tuple):
+                # Fraction case
+                num, den = matches[-1]
+                return f"\\frac{{{num}}}{{{den}}}"
+            else:
+                return str(matches[-1])
+    
+    return ""
+
+def normalize_answer(answer):
+    """
+    Normalize answer for comparison by:
+    1. Removing extra whitespace
+    2. Handling LaTeX formatting variations
+    3. Removing units and degree symbols when comparing numbers
+    4. Normalizing fractions
+    """
+    if not answer:
+        return ""
+    
+    # Convert to string and strip
+    answer = str(answer).strip()
+    
+    # Remove LaTeX command wrappers but keep content
+    answer = re.sub(r'\\left\s*\(', '(', answer)
+    answer = re.sub(r'\\right\s*\)', ')', answer)
+    
+    # Normalize fractions: \frac{a}{b} -> a/b (for comparison)
+    # But keep original for exact match first
+    normalized = answer
+    
+    # Remove trailing punctuation
+    normalized = re.sub(r'[.,;:!?]+$', '', normalized).strip()
+    
+    return normalized
+
+
+def compare_answers(predicted, ground_truth):
+    """
+    Robustly compare predicted answer with ground truth.
+    Returns True if they match (considering various formats).
+    """
+    if not predicted or not ground_truth:
+        return False
+    
+    pred = normalize_answer(predicted)
+    gt = normalize_answer(ground_truth)
+    
+    # Exact match (after normalization)
+    if pred == gt:
+        return True
+    
+    # Check if ground truth is contained in predicted (for cases with extra text)
+    if gt in pred:
+        return True
+    
+    # Check if predicted is contained in ground truth
+    if pred in gt:
+        return True
+    
+    # Handle LaTeX fraction variations
+    # \frac{14}{3} vs 14/3 vs \frac{14}{3}
+    pred_frac = re.sub(r'\\frac\{([^}]+)\}\{([^}]+)\}', r'\1/\2', pred)
+    gt_frac = re.sub(r'\\frac\{([^}]+)\}\{([^}]+)\}', r'\1/\2', gt)
+    if pred_frac == gt_frac:
+        return True
+    
+    # Handle numbers with units (e.g., "28^\\circ" vs "28")
+    # Extract just the number part
+    pred_num = re.sub(r'\^?\{?\\circ\}?', '', pred).strip()
+    gt_num = re.sub(r'\^?\{?\\circ\}?', '', gt).strip()
+    if pred_num == gt_num and pred_num:
+        return True
+    
+    # Handle base notation (e.g., "52_8" vs "52_8")
+    # Normalize underscore notation
+    pred_base = re.sub(r'_(\d+)', r'_\1', pred)
+    gt_base = re.sub(r'_(\d+)', r'_\1', gt)
+    if pred_base == gt_base:
+        return True
+    
+    # Try numeric comparison for pure numbers
     try:
-        for regex in regex_list:
-            _res = re.findall(regex, response, flags=re.MULTILINE)
-            _res = _res[-1] if _res and len(_res)>0 else ""
-            if _res != "":
-                break
-    except (re.error, IndexError, AttributeError):
-        # Regex error or no match found, continue with empty result
+        pred_float = float(re.sub(r'[^\d\.\-]', '', pred))
+        gt_float = float(re.sub(r'[^\d\.\-]', '', gt))
+        if abs(pred_float - gt_float) < 1e-6:
+            return True
+    except (ValueError, TypeError):
         pass
-    _res = _res.strip('.')
-    return _res
+    
+    return False
+
 
 def eval_math500(results, dataset, result_path, args):
     true_num = 0
+    detailed_results = []
+    
     for index, answer in enumerate(results):
-        if dataset[index]['answer'] in collect_answer_from_response(answer):
+        extracted = collect_answer_from_response(answer)
+        ground_truth = dataset[index].get('answer', '')
+        
+        is_correct = compare_answers(extracted, ground_truth)
+        
+        if is_correct:
             true_num += 1
+        
+        detailed_results.append({
+            'index': index,
+            'task_id': dataset[index].get('task_id', index),
+            'extracted': extracted,
+            'ground_truth': ground_truth,
+            'correct': is_correct,
+            'full_response': answer[:500] if len(answer) > 500 else answer  # First 500 chars
+        })
 
     print('----------------- Finish Answering -------------------')
+    print(f'Correct: {true_num}/{len(dataset)} = {true_num/len(dataset):.4f}')
 
     with open(result_path, 'a', encoding='utf-8') as file:
-
         file.write("----------------- Args Configuration -------------------\n")
         for arg in vars(args):
             file.write(f"{arg}: {getattr(args, arg)}\n")
         file.write("\n\n")
-
-        file.write(f"Total Accuracy: {true_num / len(dataset)}\n")
+        
+        file.write(f"Total Accuracy: {true_num / len(dataset):.4f} ({true_num}/{len(dataset)})\n")
         file.write("\n\n")
+        
+        # Write detailed results for first 20 samples (for debugging)
+        file.write("----------------- Sample Results (First 20) -------------------\n")
+        for result in detailed_results[:20]:
+            file.write(f"\nSample {result['index']} (Task ID: {result['task_id']}):\n")
+            file.write(f"  Extracted: {result['extracted']}\n")
+            file.write(f"  Ground Truth: {result['ground_truth']}\n")
+            file.write(f"  Correct: {result['correct']}\n")
+            file.write(f"  Response (first 200 chars): {result['full_response'][:200]}...\n")
+            file.write("-" * 80 + "\n")
         
         
         
@@ -475,13 +660,27 @@ def check_solution(prediction: str, puzzle_str: str = None) -> bool:
     Returns:
         True if the solution is valid (16 digits, satisfies row/column/box constraints), False otherwise
     """
+    if not prediction:
+        return False
+    
     # Extract everything between <answer> and </answer> tags (find the last one)
     matches = re.findall(r'<answer>(.*?)</answer>', prediction, re.DOTALL)
     if matches:
         solution_part = matches[-1].strip()  # Get the last match
     else:
-        # Fallback: use the entire prediction
-        solution_part = prediction
+        # Fallback strategies:
+        # 1. Look for 4x4 grid pattern (4 lines of 4 digits each)
+        grid_pattern = re.search(r'(\d{4}\s*\n\s*\d{4}\s*\n\s*\d{4}\s*\n\s*\d{4})', prediction, re.MULTILINE)
+        if grid_pattern:
+            solution_part = grid_pattern.group(1)
+        else:
+            # 2. Look for 16 consecutive digits
+            digit_pattern = re.search(r'(\d{16})', prediction.replace('\n', '').replace(' ', ''))
+            if digit_pattern:
+                solution_part = digit_pattern.group(1)
+            else:
+                # 3. Use the entire prediction
+                solution_part = prediction
     
     # Remove debug markers if present
     solution_part = re.sub(r'\[DEBUG_FULL_OUTPUT\].*?\[/DEBUG_FULL_OUTPUT\]', '', solution_part, flags=re.DOTALL)
@@ -614,10 +813,30 @@ def extract_gsm8k_ground_truth(answer_text: str) -> str:
     Format example:
     ...
     #### 64
+    Also handles math500-style LaTeX answers (e.g., "\\left( 3, \\frac{\\pi}{2} \\right)")
     """
+    # Try GSM8K format first (#### pattern)
     match = re.search(r"####\s*([-+]?\d*\.?\d+)", answer_text)
     if match:
         return match.group(1).strip()
+    
+    # If no #### pattern, try to extract from LaTeX format (math500 style)
+    # This handles cases where data was incorrectly loaded
+    # Try to extract numbers from LaTeX expressions
+    # For simple numeric answers, look for \boxed{...} or standalone numbers
+    boxed_match = re.search(r"\\boxed\{([^}]+)\}", answer_text)
+    if boxed_match:
+        boxed_content = boxed_match.group(1)
+        # Try to extract numeric value from boxed content
+        num_match = re.search(r"([-+]?\d*\.?\d+)", boxed_content)
+        if num_match:
+            return num_match.group(1).strip()
+    
+    # Try to extract last number in the text (fallback)
+    numbers = re.findall(r"[-+]?\d*\.?\d+", answer_text)
+    if numbers:
+        return numbers[-1].strip()
+    
     return ""
 
 
@@ -626,17 +845,57 @@ def extract_gsm8k_prediction(model_output: str) -> str:
     Extract the final numeric answer from model output.
     Strategy:
     1. If contains #### pattern, use it.
-    2. Otherwise extract the last occurring number.
+    2. Look for "So the answer is" or "The answer is" patterns
+    3. Look for \boxed{...} pattern (math500 style)
+    4. Otherwise extract the last occurring number (but be more careful).
     """
-    # Try #### pattern first
+    # Try #### pattern first (GSM8K format)
     match = re.search(r"####\s*([-+]?\d*\.?\d+)", model_output)
     if match:
         return match.group(1).strip()
 
+    # Try \boxed{...} pattern (math500 style, in case data was mixed)
+    boxed_match = re.search(r"\\boxed\{([^}]+)\}", model_output)
+    if boxed_match:
+        boxed_content = boxed_match.group(1)
+        # Try to extract numeric value from boxed content
+        # Handle LaTeX expressions like "3\sqrt{3}" or simple numbers
+        num_match = re.search(r"([-+]?\d*\.?\d+)", boxed_content)
+        if num_match:
+            return num_match.group(1).strip()
+
+    # Try "So the answer is" or "The answer is" patterns
+    answer_patterns = [
+        r"(?:So\s+)?(?:the\s+)?answer\s+is[:\s]+([-+]?\d*\.?\d+)",
+        r"answer[:\s]+([-+]?\d*\.?\d+)",
+    ]
+    for pattern in answer_patterns:
+        matches = re.findall(pattern, model_output, re.IGNORECASE)
+        if matches:
+            # Take the last match (most likely the final answer)
+            answer = matches[-1].strip()
+            # Remove common trailing words like "days", "years", "dollars", etc.
+            answer = re.sub(r'\s*(days?|years?|dollars?|cents?|hours?|minutes?|seconds?|miles?|meters?|liters?|pounds?|ounces?|units?)\s*$', '', answer, flags=re.IGNORECASE)
+            if answer:
+                return answer.strip()
+
     # Otherwise extract all numbers and take the last one
+    # But skip numbers that are clearly part of intermediate calculations
     numbers = re.findall(r"[-+]?\d*\.?\d+", model_output)
     if numbers:
-        return numbers[-1].strip()
+        # Take the last number, but prefer integers over decimals for final answers
+        last_number = numbers[-1].strip()
+        # If there are multiple numbers, try to find the one after "answer" keywords
+        answer_keywords = ['answer', 'result', 'total', 'final']
+        for keyword in answer_keywords:
+            keyword_pos = model_output.lower().rfind(keyword)
+            if keyword_pos >= 0:
+                # Find numbers after this keyword
+                after_keyword = model_output[keyword_pos:]
+                after_numbers = re.findall(r"[-+]?\d*\.?\d+", after_keyword)
+                if after_numbers:
+                    return after_numbers[-1].strip()
+        return last_number
 
     return ""
 
