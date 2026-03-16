@@ -119,7 +119,9 @@ Examples:
                         help='Output result file path')
     parser.add_argument('--result_dir', type=str, default=None,
                         help='Output result directory')
-    
+    parser.add_argument('--max_samples', type=int, default=None,
+                        help='Limit to first N samples (for quick testing)')
+
     args = parser.parse_args()
     
     # Validate task

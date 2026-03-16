@@ -738,7 +738,9 @@ def main():
                         help='Cache mode')
     parser.add_argument('--no_shot', action='store_true',
                         help='Disable few-shot examples')
-    
+    parser.add_argument('--max_samples', type=int, default=None,
+                        help='Limit to first N samples (for quick testing)')
+
     args = parser.parse_args()
     
     # Map --mode to --algorithm
@@ -815,6 +817,9 @@ def main():
             raise ValueError(f"data_path is required for task '{args.task}'")
     
     dataset = load_dataset(args.data_path, args.task)
+    if getattr(args, 'max_samples', None):
+        dataset = dataset[:args.max_samples]
+        print(f"Limiting to first {args.max_samples} samples.")
     print(f"Loaded {len(dataset)} samples from {args.data_path}")
     
     # Create result directory

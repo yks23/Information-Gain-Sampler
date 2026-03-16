@@ -298,17 +298,20 @@ python eval_writing.py \
     --temperature 0.7
 
 # Multimodal tasks (text-to-image)
+# MMaDA requires einops/diffusers/jaxtyping; use --conda_env mmada if they are in a separate env
 # Full pipeline: generation + evaluation
 python eval_multimodal.py --pipeline all \
     --mmada_model_path ./model/mmada \
-    --vq_model_path ./model/magvitv2
+    --vq_model_path ./model/magvitv2 \
+    --conda_env mmada
 
 # Only generate images
 python eval_multimodal.py --pipeline generate \
     --mmada_model_path ./model/mmada \
-    --vq_model_path ./model/magvitv2
+    --vq_model_path ./model/magvitv2 \
+    --conda_env mmada
 
-# Only evaluate existing images
+# Only evaluate existing images (no conda_env needed, uses base env)
 python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval
 ```
 

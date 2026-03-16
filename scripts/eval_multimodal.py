@@ -63,7 +63,11 @@ Examples:
     
     parser.add_argument('--test', action='store_true',
                         help='Run in test mode (smaller scale)')
-    
+    parser.add_argument('--conda_env', type=str, default=None,
+                        help='Run generation inside a conda env (e.g. "mmada") via conda run. '
+                             'Useful when multimodal deps (einops, diffusers, jaxtyping) are '
+                             'only installed in a separate environment.')
+
     args = parser.parse_args()
     
     # Auto-detect model paths from model/ directory if not provided
@@ -132,6 +136,10 @@ Examples:
         if args.test:
             cmd.append('--test')
     
+    # Optionally wrap in conda run
+    if getattr(args, 'conda_env', None) and args.pipeline in ('generate', 'all'):
+        cmd = ['conda', 'run', '-n', args.conda_env] + cmd
+
     # Execute command
     print(f"Running: {' '.join(cmd)}")
     print(f"Working directory: {multimodal_dir}")
