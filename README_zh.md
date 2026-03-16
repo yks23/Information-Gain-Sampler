@@ -1,40 +1,65 @@
 # Improving Sampling for Masked Diffusion Models via Information Gain
 
-[中文版 README](README_zh.md) | [English README](README.md)
+[中文版 README](README_zh.md) | [English README](README.md) | [论文](https://arxiv.org/abs/2602.18176)
 
-一个统一的解码框架，用于掩码扩散模型（MDMs），结合轨迹规划与信息增益最大化。本仓库提供了 **Info-Gain Sampler** 的实现，这是一个灵活的解码策略，通过平衡即时确定性与长期信息增益，实现更鲁棒的生成质量。
+一个统一的解码框架，用于掩码扩散模型（MDMs），通过平衡即时确定性与长期信息增益，实现更鲁棒的生成质量。
 
-**核心特性：**
-- **信息增益优化**：最大化信息增益，同时最小化即时不确定性成本
-- **高效并行评估**：在单次前向传播中批量评估候选动作
-- **多种缓存模式**：支持无缓存、前缀缓存和双缓存，满足不同速度/质量权衡
-- **统一接口**：与 LLaDA、Dream、MMaDA 等 MDM 架构无缝协作
-- **任务无关**：适用于文本生成、代码补全和多模态任务
+---
 
-> **注意**：本仓库正在积极开发中。我们还提供了生产就绪的 [dllm](https://github.com/ZHZisZZ/dllm) 框架适配版本。`dllm/` 目录是一个 Git 子模块，包含我们与 dllm 框架完全集成的 Info-Gain 采样器实现。
-> 
-> **Beam Search**：Beam search 功能尚未完全整理，可能存在不完整的实现。生产环境建议使用 Info-Gain 采样器（单候选或 `candidate_number > 1`）。
+## 快速上手
 
-**初始化子模块：**
+**第一步 — 安装并下载模型**
 
 ```bash
-# 克隆仓库时包含子模块
 git clone --recurse-submodules git@github.com:yks23/Information-Gain-Sampler.git
+cd Information-Gain-Sampler
+conda create -n info-gain python=3.10 && conda activate info-gain
+pip install -r requirements.txt
 
-# 或者如果已经克隆了仓库，初始化子模块
-git submodule update --init --recursive
+# 下载 LLaDA（或替换为 dream / sdar / trado，见下方模型列表）
+huggingface-cli download GSAI-ML/LLaDA-8B-Instruct --local-dir ./model/llada
 ```
 
-然后可以进入 `dllm/` 目录，参照 [`dllm/README.md`](dllm/README.md) 使用 dllm 框架集成版本。
+**第二步 — 使用预设 config 一键运行**
+
+```bash
+# GSM8K + Info-Gain 采样器
+python run.py --config configs/gsm8k_info_gain.yaml
+
+# 替换模型无需修改 config
+python run.py --config configs/gsm8k_info_gain.yaml --model dream
+python run.py --config configs/gsm8k_info_gain.yaml --model sdar
+
+# 快速冒烟测试（仅 2 条样本）
+python run.py --config configs/gsm8k_info_gain.yaml --max_samples 2
+```
+
+**可用 config**（位于 `configs/`）：
+
+| Config | 任务 | 采样器 |
+|--------|------|--------|
+| `gsm8k_info_gain.yaml` | GSM8K | Info-Gain |
+| `math500_info_gain.yaml` | MATH-500 | Info-Gain |
+| `humaneval_info_gain.yaml` | HumanEval | Info-Gain |
+| `mbpp_info_gain.yaml` | MBPP | Info-Gain |
+| `writing_info_gain.yaml` | 创意写作 | Info-Gain |
+| `gsm8k_original.yaml` | GSM8K | 贪婪基线 |
+
+任何 config 键都可以在命令行覆盖：`python run.py --config X.yaml --key value`。
+
+```bash
+python run.py --list_configs   # 列出所有可用 config
+```
+
+---
 
 ## 目录
 
 - [动机](#动机)
 - [Info-Gain Sampler](#info-gain-sampler)
+- [模型](#模型)
 - [安装](#安装)
-- [模型准备](#模型准备)
-- [数据准备](#数据准备)
-- [快速开始](#快速开始)
+- [进阶用法](#进阶用法)
 - [项目状态](#项目状态)
 - [许可证](#许可证)
 - [引用](#引用)
@@ -116,66 +141,135 @@ $$J_{IG}(a_t \mid z_t) = \underbrace{\text{IG}(a_t; z_t)}_{\text{信息增益}} 
 
 ---
 
+## 模型
+
+| 模型 | HuggingFace 路径 | 本地别名 |
+|------|-----------------|----------|
+| **LLaDA** | `GSAI-ML/LLaDA-8B-Instruct` | `llada` |
+| **Dream** | `Dream-org/Dream-v0-Instruct-7B` | `dream` |
+| **SDAR** | `JetLM/SDAR-8B-Chat` | `sdar` |
+| **TraDo** | `Gen-Verse/TraDo-8B-Instruct` | `trado` |
+| **MMaDA** | `Gen-Verse/MMaDA-8B-MixCoT` | `mmada` |
+
+```bash
+huggingface-cli download GSAI-ML/LLaDA-8B-Instruct --local-dir ./model/llada
+huggingface-cli download Dream-org/Dream-v0-Instruct-7B --local-dir ./model/dream
+huggingface-cli download JetLM/SDAR-8B-Chat --local-dir ./model/sdar
+huggingface-cli download Gen-Verse/TraDo-8B-Instruct --local-dir ./model/trado
+```
+
 ## 安装
 
-**要求**：Python >= 3.8, PyTorch >= 2.0.0（推荐支持 CUDA），支持 CUDA 的 GPU
+**要求**：Python ≥ 3.10，PyTorch ≥ 2.0（需要 CUDA）
 
 ```bash
 git clone --recurse-submodules git@github.com:yks23/Information-Gain-Sampler.git
 cd Information-Gain-Sampler
-git submodule update --init --recursive
-
-conda create -n info-gain python=3.10
-conda activate info-gain
-
-# 安装核心依赖
+conda create -n info-gain python=3.10 && conda activate info-gain
 pip install -r requirements.txt
 
-# 可选：dllm 框架集成（参考 dllm/README.md）
+# 可选：dllm 框架集成（accelerate 多 GPU 评估）
 cd dllm/ && pip install -e . && cd ..
-
-# 可选：多模态评估
-pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
 ```
 
-## 模型准备
+## 进阶用法
 
-### 支持的模型
+<details>
+<summary>所有 run.py 参数</summary>
 
-| 模型 | 类型 | HuggingFace 路径 | 本地路径 |
-|------|------|------------------|----------|
-| **TraDo** | MDM | `Gen-Verse/TraDo-8B-Instruct` | `./model/trado` |
-| **LLaDA** | MDM | `GSAI-ML/LLaDA-8B-Instruct` | `./model/llada` |
-| **Dream** | MDM | `Dream-org/Dream-v0-Instruct-7B` | `./model/dream` |
-| **SDAR** | MDM | `JetLM/SDAR-8B-Chat` | `./model/sdar` |
-| **MMaDA** | MDM | `Gen-Verse/MMaDA-8B-MixCoT` | `./model/mmada` |
+Config 键 / 命令行参数：
 
-**使用方法**：
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `task` | — | `gsm8k` `math500` `humaneval` `mbpp` `creativity_writing` `sudoku` `countdown` |
+| `model` | — | 本地别名或 HuggingFace 路径 |
+| `mode` | `info-gain` | `info-gain` `original` `pc_sampler` `eb_sampler` `fast_dllm` |
+| `variant` | `info_gain` | `info_gain` 或 `lookum` |
+| `candidate_number` | `8` | 每步评估的候选动作数 |
+| `position_temperature` | `0.2` | 位置采样多样性温度 |
+| `threshold` | `0.8` | 高置信度跳过阈值 |
+| `use_cache` | `prefix` | `none` `prefix` `dual` |
+| `temperature` | `0.0` | Token 采样温度 |
+| `gen_length` | `256` | 生成 token 数 |
+| `steps` | `256` | 去掩码步数 |
+| `block_length` | `32` | 双向注意力块大小 |
+| `max_samples` | `null` | 限制样本数（快速测试用） |
 
-```python
-from src.models import get_model_adapter
+</details>
 
-# 从本地目录加载（推荐）
-adapter = get_model_adapter("llada", device="cuda:0")  # 查找 ./model/llada/
-
-# 从 HuggingFace Hub 加载（自动下载）
-adapter = get_model_adapter("GSAI-ML/LLaDA-8B-Instruct", device="cuda:0")
-```
-
-**下载模型**：
+<details>
+<summary>多 GPU 评估</summary>
 
 ```bash
-# 示例：下载 LLaDA 模型
-huggingface-cli download GSAI-ML/LLaDA-8B-Instruct --local-dir ./model/llada
+# 多 GPU（eval_multigpu.py）
+python scripts/eval_multigpu.py \
+    --task gsm8k --model_name llada --num_gpus 4 \
+    --mode info-gain --candidate_number 8 \
+    --position_temperature 0.2 --threshold 0.8 \
+    --use_cache prefix --gen_length 256 --steps 256
+
+# 或通过 dllm/accelerate（推荐大规模评估）
+cd dllm
+accelerate launch --num_processes 4 \
+    dllm/pipelines/info_gain/llada/eval.py \
+    --tasks "gsm8k" --model "llada" --apply_chat_template \
+    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+```
+</details>
+
+<details>
+<summary>dllm 框架（SDAR / TraDo）</summary>
+
+```bash
+cd dllm
+
+# SDAR
+accelerate launch --num_processes 1 \
+    dllm/pipelines/info_gain/sdar/eval.py \
+    --tasks "gsm8k" --model "sdar" --apply_chat_template \
+    --model_args "pretrained=JetLM/SDAR-8B-Chat,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+
+# TraDo
+accelerate launch --num_processes 1 \
+    dllm/pipelines/info_gain/sdar/eval.py \
+    --tasks "gsm8k" --model "trado" --apply_chat_template \
+    --model_args "pretrained=Gen-Verse/TraDo-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
+```
+</details>
+
+<details>
+<summary>多模态（MMaDA 文本到图像）</summary>
+
+需要 Python 3.11 和独立 conda 环境：
+```bash
+conda create -n mmada python=3.11
+conda activate mmada
+pip install einops diffusers jaxtyping tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
+pip install -r requirements.txt
 ```
 
-**多模态模型**：文本到图像任务需要 MMaDA 模型（`Gen-Verse/MMaDA-8B-MixCoT`）和 VQ 模型（`showlab/magvitv2`）。详细说明请参见 [src/benchmarks/multimodal_tasks/multimodal_eval/README.md](src/benchmarks/multimodal_tasks/multimodal_eval/README.md)。
+```bash
+cd scripts
 
-## 数据准备
+# 完整流程：生成 + 评估
+python eval_multimodal.py --pipeline all \
+    --mmada_model_path ./model/mmada \
+    --vq_model_path ./model/magvitv2 \
+    --conda_env mmada
 
-### 基线文件
+# 仅生成图像
+python eval_multimodal.py --pipeline generate \
+    --mmada_model_path ./model/mmada \
+    --vq_model_path ./model/magvitv2 \
+    --conda_env mmada
 
-PC-Sampler 需要基线频率文件（`data/baseline/reference_corpus*.json`）：
+# 仅评估已有图像（无需 conda env）
+python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval
+```
+</details>
+
+<details>
+<summary>PC-Sampler 数据准备</summary>
 
 ```bash
 python utils/calculate_p_baseline.py \
@@ -183,212 +277,24 @@ python utils/calculate_p_baseline.py \
     --output_file data/baseline/reference_corpus.json \
     --model_name GSAI-ML/LLaDA-8B-Instruct
 ```
+</details>
 
-### 多模态数据
-
-多模态评估需要以下文件：
-
-- **GenEval 提示**：`src/benchmarks/multimodal_tasks/multimodal_eval/prompts/generation_prompts.txt`
-- **ImageNet 参考统计**（FID 评估）：
-  ```bash
-  wget https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/512/VIRTUAL_imagenet512.npz \
-       -O data/VIRTUAL_imagenet512.npz
-  ```
-- **Mask2Former 模型**（GenEval 目标检测）：
-  ```bash
-  mkdir -p models/mask2former
-  wget https://download.openmmlab.com/mmdetection/v2.0/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth \
-       -O models/mask2former/mask2former_swin-s-p4-w7-224_lsj_8x2_50e_coco.pth
-  ```
-
-## 快速开始
-
-### 多GPU评估脚本
-
-使用 `eval_multigpu.py` 脚本进行高效的多GPU评估：
-
-```bash
-# 完整示例，包含所有参数
-python scripts/eval_multigpu.py \
-    --task math500 \
-    --model_name dream \
-    --num_gpus 4 \
-    --device cuda \
-    --data_path data/math500.jsonl \
-    --result_path results/math500_results.txt \
-    --mode info-gain \
-    --variant lookum \
-    --gen_length 512 \
-    --steps 512 \
-    --block_length 16 \
-    --temperature 0.7 \
-    --candidate_number 8 \
-    --heuristic confidence \
-    --position_temperature 0.1 \
-    --threshold 0.8 \
-    --use_cache prefix \
-    --no_shot
-
-# 或通过SLURM批处理脚本提交
-sbatch scripts/eval_lookum.sbatch
-```
-
-**关键参数：**
-- `--task`: 任务名称 (`math500`, `humaneval`, `gsm8k`, `mbpp`, `sudoku`, `countdown`)
-- `--model_name`: 模型名称或路径（本地：`dream`, `./model/dream`，或HuggingFace路径）
-- `--num_gpus`: GPU数量（默认：自动检测）
-- `--mode`: 采样模式 (`info-gain`, `original`, `pc_sampler`, `eb_sampler`, `fast_dllm`, `entropy`, `margin`)
-- `--variant`: Info-Gain变体 (`info_gain` 或 `lookum`)
-- `--gen_length`, `--steps`, `--block_length`: 生成参数
-- `--temperature`: 采样温度
-- `--candidate_number`: 候选动作数量
-- `--position_temperature`: 位置采样温度
-- `--threshold`: 高置信度跳过的动态阈值
-- `--use_cache`: 缓存模式 (`none`, `prefix`, `dual`)
-- `--no_shot`: 禁用few-shot示例（数学/代码任务自动启用）
-
-**输出：** 结果会实时保存到 `worker_results/` 目录，包含JSONL和人类可读格式。
-
-### 任务特定脚本
-
-```bash
-cd scripts
-
-# 推理任务（数学、代码等）
-# HumanEval（代码补全）
-python eval_reasoning.py --task humaneval \
-    --model_name GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --threshold 0.8 \
-    --gen_length 512 \
-    --steps 256
-
-# MATH-500（数学推理）
-python eval_reasoning.py --task math500 \
-    --model_name GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --threshold 0.8 \
-    --gen_length 512 \
-    --steps 256
-
-# GSM8K（小学数学）
-python eval_reasoning.py --task gsm8k \
-    --model_name GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --threshold 0.8
-
-# 创意写作任务
-python eval_writing.py \
-    --model_name GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --threshold 0.8 \
-    --gen_length 512 \
-    --steps 512 \
-    --temperature 0.7
-
-# 多模态任务（文本到图像）
-# 完整流程：生成 + 评估
-python eval_multimodal.py --pipeline all \
-    --mmada_model_path ./model/mmada \
-    --vq_model_path ./model/magvitv2
-
-# 仅生成图像
-python eval_multimodal.py --pipeline generate \
-    --mmada_model_path ./model/mmada \
-    --vq_model_path ./model/magvitv2
-
-# 仅评估已有图像
-python eval_multimodal.py --pipeline geneval --image_dir ./output_geneval
-```
-
-### 统一脚本
-
-```bash
-cd scripts
-
-# 带缓存支持的 Info-Gain Sampler
-bash Eval.sh \
-    --task humaneval \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --use_cache prefix \
-    --threshold 0.8 \
-    --gen_length 512 \
-    --steps 256
-
-# 使用双缓存（更快但需要更多内存）
-bash Eval.sh \
-    --task math500 \
-    --model GSAI-ML/LLaDA-8B-Instruct \
-    --mode info-gain \
-    --candidate_number 8 \
-    --position_temperature 0.2 \
-    --use_cache dual \
-    --threshold 0.8
-
-# 运行 bash Eval.sh --help 查看完整用法
-```
-
-### dllm 框架评估
-
-生产环境推荐使用 dllm 集成：
-
-```bash
-cd dllm
-
-# LLaDA（单 GPU）
-accelerate launch --num_processes 1 \
-    dllm/pipelines/info_gain/llada/eval.py \
-    --tasks "gsm8k" \
-    --model "llada" \
-    --apply_chat_template \
-    --model_args "pretrained=GSAI-ML/LLaDA-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
-
-# SDAR
-accelerate launch --num_processes 1 \
-    dllm/pipelines/info_gain/sdar/eval.py \
-    --tasks "gsm8k" \
-    --model "sdar" \
-    --apply_chat_template \
-    --model_args "pretrained=JetLM/SDAR-8B-Chat,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
-
-# TraDo
-accelerate launch --num_processes 1 \
-    dllm/pipelines/info_gain/sdar/eval.py \
-    --tasks "gsm8k" \
-    --model "trado" \
-    --apply_chat_template \
-    --model_args "pretrained=Gen-Verse/TraDo-8B-Instruct,use_cache=prefix,threshold=0.8,candidate_number=8,position_temperature=0.2,max_new_tokens=256,steps=256,block_size=32"
-
-# 多 GPU：将 --num_processes 1 替换为 GPU 数量
-```
 ---
 
 ## 项目状态
 
-### 进行中
-
-- 评估代码整理和清理
-- 蛋白质生成质量测试
-- 大规模评估的性能优化
-- Beam search 功能整理和重构
-
 ### 已完成
 
 - 发布 arXiv 论文（[arXiv:2602.18176](https://arxiv.org/abs/2602.18176)）
-- dllm 框架集成，支持完整缓存功能
-- 文本和多模态任务的 Info-Gain 实现
-- 推理、写作和多模态任务的统一评估流程
+- dllm 框架集成，支持完整缓存功能（LLaDA、Dream、SDAR、TraDo）
+- 独立 `InfoGainSampler`，无需 dllm 依赖
+- 预设实验 config，一条命令复现论文结果
+- 统一 `run.py` 入口
+
+### 进行中
+
+- Beam search 功能整理
+- 蛋白质生成质量测试
 
 ---
 
