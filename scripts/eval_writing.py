@@ -92,14 +92,18 @@ Examples:
     parser.add_argument('--use_cache', type=str, default=None,
                         choices=[None, 'none', 'prefix', 'dual'],
                         help='Cache mode: None/none (no cache), prefix (prefix cache), or dual (dual cache with replace_position)')
+    _default_data = os.path.join(project_root, 'src', 'benchmarks', 'text_tasks',
+                                  'creativity_writing', 'data', 'creativity_writing.jsonl')
     parser.add_argument('--data_path', type=str,
-                        default='../src/benchmarks/text_tasks/creativity_writing/data/creativity_writing.jsonl',
+                        default=_default_data,
                         help='Dataset path')
     parser.add_argument('--result_path', type=str, default=None,
                         help='Output result file path')
     parser.add_argument('--result_dir', type=str, default=None,
                         help='Output result directory')
-    
+    parser.add_argument('--max_samples', type=int, default=None,
+                        help='Limit to first N samples (for quick testing)')
+
     args = parser.parse_args()
     
     # Set task to creativity_writing

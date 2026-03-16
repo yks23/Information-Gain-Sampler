@@ -422,7 +422,9 @@ def main(args=None):
                             help='Cache mode: None/none (no cache), prefix (prefix cache), or dual (dual cache with replace_position)')
         parser.add_argument('--no_shot', action='store_true',
                             help='Disable few-shot examples')
-        
+        parser.add_argument('--max_samples', type=int, default=None,
+                            help='Limit evaluation to first N samples (for quick testing)')
+
         args = parser.parse_args()
     
     # Map --mode to --algorithm if provided
@@ -534,7 +536,13 @@ def main(args=None):
     
     # Load dataset
     dataset = load_dataset(args.data_path, args.task)
-    
+
+    # Optionally limit to first N samples
+    max_samples = getattr(args, 'max_samples', None)
+    if max_samples is not None and max_samples > 0:
+        dataset = dataset[:max_samples]
+        print(f"Limiting to first {max_samples} samples.")
+
     # Generate predictions for all samples
     results = []
     mask_id = adapter.mask_id

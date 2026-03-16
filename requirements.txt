@@ -9,3 +9,7 @@ torch
 tqdm
 seaborn
 omegaconf>=2.0.0  # Required for multimodal tasks
+# Multimodal (MMaDA text-to-image) extra dependencies:
+einops             # Required for MMaDA/MAGVITv2
+diffusers          # Required for MMaDA modeling_utils
+jaxtyping          # Required for MMaDA misc modules

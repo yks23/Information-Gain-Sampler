@@ -134,8 +134,11 @@ pip install -r requirements.txt
 # Optional: dllm framework integration (see dllm/README.md)
 cd dllm/ && pip install -e . && cd ..
 
-# Optional: multimodal evaluation
-pip install tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
+# Optional: multimodal evaluation (text-to-image with MMaDA)
+# Requires Python 3.11 and the following additional packages:
+pip install einops diffusers jaxtyping tensorflow scipy mmdet open_clip_torch clip_benchmark pandas
+# Note: MMaDA generation (eval_multimodal.py) was tested with a dedicated conda env.
+# If you have dependency conflicts, consider: conda create -n mmada python=3.11
 ```
 
 ## Model Preparation
