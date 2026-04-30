@@ -1,10 +1,10 @@
 # Improving Sampling for Masked Diffusion Models via Information Gain
 
 [![arXiv](https://img.shields.io/badge/arXiv-2602.18176-b31b1b)](https://arxiv.org/abs/2602.18176)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)]()
 
-[中文版 README](README_zh.md) | [English README](README.md) | [Paper](https://arxiv.org/abs/2602.18176)
+[中文版 README](README_zh.md) | [English README](README.md) | [Paper](https://arxiv.org/abs/2602.18176) | [Project Page](https://yks23.github.io/info-gain-sampler/)
 
 A unified decoding framework for **Masked Diffusion Models (MDMs)** that replaces greedy local-certainty heuristics with a principled information-gain objective, yielding more robust generation across math, code, and creative tasks.
 
@@ -104,7 +104,7 @@ decoded = tokenizer.decode(output_ids[0, prompt_len:], skip_special_tokens=True)
 
 ## License
 
-MIT License.
+This project is released into the public domain under [The Unlicense](LICENSE) — use it however you like, no conditions.
 
 ## Citation
 
