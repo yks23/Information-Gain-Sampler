@@ -8,6 +8,8 @@
 
 一个面向**掩码扩散模型（MDMs）**的统一解码框架，以信息增益目标取代贪婪局部启发式，在数学、代码和创意写作等任务上实现更鲁棒的生成。
 
+> 🎉 **News: 论文已被 ICML 2026 接收！**
+
 <p align="center">
   <img src="assets/IGS.png" alt="Info-Gain Sampler 概览" width="720"/>
 </p>

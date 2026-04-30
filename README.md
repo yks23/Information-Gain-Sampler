@@ -8,6 +8,8 @@
 
 A unified decoding framework for **Masked Diffusion Models (MDMs)** that replaces greedy local-certainty heuristics with a principled information-gain objective, yielding more robust generation across math, code, and creative tasks.
 
+> 🎉 **News: Accepted by ICML 2026!**
+
 <p align="center">
   <img src="assets/IGS.png" alt="Info-Gain Sampler overview" width="720"/>
 </p>
