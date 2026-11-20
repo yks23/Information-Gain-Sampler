@@ -58,11 +58,13 @@ wget https://download.openmmlab.com/mmdetection/v2.0/mask2former/mask2former_swi
 
 ## PC-Sampler Data Preparation
 
-PC-Sampler requires baseline frequency files (`data/baseline/reference_corpus*.json`):
+The upstream [PC-Sampler / UNCODE release](https://aclanthology.org/2026.acl-long.311/) provides [baseline frequency files for LLaDA and Dream](https://github.com/NEUIR/Uncode/tree/master/data/baseline). Choose the file for the tokenizer you use.
+
+To calculate frequencies from your own JSONL corpus, run the interactive utility from the repository root:
 
 ```bash
-python utils/calculate_p_baseline.py \
-    --input_file /path/to/reference_corpus.jsonl \
-    --output_file data/baseline/reference_corpus.json \
-    --model_name GSAI-ML/LLaDA-8B-Instruct
+mkdir -p data/baseline
+python src/utils/calculate_p_baseline.py
 ```
+
+Enter the tokenizer's model name, the JSONL path, the text fields to count, and an output path such as `data/baseline/reference_corpus.json` when prompted.
